@@ -1,19 +1,97 @@
 {%extends "base.html" %}
 {% block title %}{% endblock %}
 {% block content %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<body>
-   <h1>AI FITNESS</h1>
- <h3>
-        <br>Your personal AI fitness coach and wellbeing guru..<br>
-       <br> In construction bro..<br>
- </h3>
-</body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Fit-AI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: auto;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        header {
+            background: #ADD8E6;
+            color: #fff;
+            padding: 20px 0;
+        }
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: auto;
+        }
+        header nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+        }
+        header nav ul li {
+            margin: auto;
+        }
+        header nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        header nav ul li a:hover {
+            text-decoration: underline;
+        }
+        #main {
+            background: #fff;
+            padding: 40px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #main h1, #main h2 {
+            color: #ADD8E6;
+        }
+        footer {
+            background: #ADD8E6;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin: auto;
+        }
+    </style>
 </head>
 <body>
 
+    <header>
+        <div class="container">
+            <h1>FitAI</h1>
+        </div>
+    </header>
+
+    <section id="main" class="container">
+        <h1>About Us</h1>
+        <p>Welcome to FitAI, your premier destination for AI-powered fitness and nutrition guidance. Our mission is to leverage cutting-edge technology to help you achieve your health goals efficiently and effectively.</p>
+        <h2>Our Vision</h2>
+        <p>At FitAI, we envision a future where personalized fitness and nutrition plans are accessible to everyone. Our AI-driven solutions provide tailored recommendations, ensuring you get the most out of your workouts and meals.</p>
+        <h2>Our Technology</h2>
+        <p>FitAI utilizes advanced artificial intelligence to analyze your data and offer personalized fitness routines and nutrition plans. Our system adapts to your progress, continually optimizing your plan to keep you on track and motivated.</p>
+        <h2>Contact Us</h2>
+        <p>If you have any questions or want to learn more about how FitAI can help you reach your goals, feel free to reach out. We are here to support you every step of the way!</p>
+    </section>
+
+    <footer>
+        <p>FitAI &copy; 2024. All rights reserved.</p>
+    </footer>
 </body>
 </html>
+
 {% endblock %}
 
