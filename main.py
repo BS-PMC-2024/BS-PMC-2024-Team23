@@ -27,35 +27,38 @@ class Users(db.Model):
         self.weight = weight
         self.height = height
 
+    def check_password(self, password):
+        return self.password == password
+
+
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("LoginPage.html")
 
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
         session.permanent = True
-        user = request.form["nm"]
-        session["user"] = user
-        found_user = Users.query.filter_by(first_name=user).first()
-        if found_user:
+        email = request.form["email"]
+        password = request.form["password"]
+        found_user = Users.query.filter_by(email=email).first()
+
+        if found_user and found_user.check_password(password):
+            session["user"] = found_user.first_name
             session["email"] = found_user.email
+            flash("Login successful!", "success")
+            return redirect(url_for("user"))
         else:
-            usr = Users(user, "", "", "", 0, 0, 0)
-            db.session.add(usr)
-            db.session.commit()
-            get_flashed_messages(with_categories=True)
-            flash("You've logged successfully, bro")
-        return redirect(url_for("user"))
+            flash("User not found or incorrect password. Please register.", "danger")
+            return redirect(url_for("home"))
     else:
         if "user" in session:
-            get_flashed_messages(with_categories=True)
-            flash("Already logged in, bro")
+            flash("Already logged in.", "info")
             return redirect(url_for("user"))
+        return render_template("LoginPage.html")
 
-        return render_template("login.html")
 
 
 @app.route("/user", methods=["POST", "GET"])
