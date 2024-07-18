@@ -4,24 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9f91c182-9ffb-4277-b4a7-b9aa03969b26" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/BS-PMC-2024-Team23" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/LoginPage.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/about.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/css/LoginPage.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/LoginPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AIFitness-SPMP-Team23.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game Settings.rtf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/user.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/user.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/view.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/view.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/WhatsApp Image 2024-06-26 at 17.33.54.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/WhatsApp Image 2024-06-26 at 17.34.54.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/WhatsApp Image 2024-06-26 at 17.35.14.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/instance/users.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/instance/users.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="9f91c182-9ffb-4277-b4a7-b9aa03969b26" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -41,22 +24,39 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2iMsEP3nEZeQCRIspSgUMlwJj2O" />
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "DefaultHtmlFileTemplate": "HTML File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "settings.editor.selected.configurable": "preferences.lookFeel"
-  }
-}]]></component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunManager">
+    <configuration name="main.py" type="PythonConfigurationType" factoryName="Python">
+      <module name="AI Project" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\WIN10\AppData\Local\Programs\Python\Python39\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -78,6 +78,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
