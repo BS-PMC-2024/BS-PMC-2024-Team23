@@ -127,6 +127,30 @@ def register():
     return render_template("LoginPage.html")
 
 
+@app.route("/edit_user", methods=["POST", "GET"])
+def edit_user():
+    if "user" in session:
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+
+        if request.method == "POST":
+            user.first_name = request.form["first_name"]
+            user.last_name = request.form["last_name"]
+            user.email = request.form["email"]
+            user.password = request.form["password"]
+            user.age = request.form["age"]
+            user.weight = request.form["weight"]
+            user.height = request.form["height"]
+
+            db.session.commit()
+            flash("User details updated successfully!", "success")
+            return redirect(url_for("user"))
+
+        return render_template("edit_user.html", user=user)
+    else:
+        flash("You are not logged in", "danger")
+        return redirect(url_for("login"))
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()

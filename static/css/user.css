@@ -6,7 +6,7 @@ body {
 }
 
 .background-image {
-    background-image: url('{{ url_for('static', filename='images/gymimage.jpg') }}');
+    background-image: url('{{ url_for('static', filename='images\BG.webp') }}');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
