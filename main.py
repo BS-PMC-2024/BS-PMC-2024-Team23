@@ -151,7 +151,7 @@ def edit_user():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
-
+"main"
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
