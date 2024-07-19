@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f91c182-9ffb-4277-b4a7-b9aa03969b26" name="Changes" comment="Changes">
-      <change beforePath="$PROJECT_DIR$/Templates/LoginPage.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/LoginPage.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/edit_user.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/edit_user.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/user.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/user.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
