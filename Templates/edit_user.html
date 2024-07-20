@@ -37,6 +37,23 @@
                     <label for="height">Height (cm)</label>
                     <input type="number" step="0.1" class="form-control" id="height" name="height" placeholder="Height" value="{{ user.height }}" required>
                 </div>
+                <div class="form-group">
+                    <label for="fitness_goal">Main Fitness Goal</label>
+                    <select class="form-control" id="fitness_goal" name="fitness_goal" required>
+                        <option value="lose_weight" {% if user.fitness_goal == 'lose_weight' %}selected{% endif %}>Lose Weight</option>
+                        <option value="gain_muscle" {% if user.fitness_goal == 'gain_muscle' %}selected{% endif %}>Gain Muscle</option>
+                        <option value="maintain" {% if user.fitness_goal == 'maintain' %}selected{% endif %}>Maintain</option>
+                        <option value="increase_endurance" {% if user.fitness_goal == 'increase_endurance' %}selected{% endif %}>Increase Endurance</option>
+                        <option value="improve_flexibility" {% if user.fitness_goal == 'improve_flexibility' %}selected{% endif %}>Improve Flexibility</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user_type">User Type</label>
+                    <select class="form-control" id="user_type" name="user_type" required>
+                        <option value="enthusiast" {% if user.user_type == 'enthusiast' %}selected{% endif %}>Enthusiast</option>
+                        <option value="fitness_coach" {% if user.user_type == 'fitness_coach' %}selected{% endif %}>Fitness Coach</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-primary">Update</button>
             </form>
         </div>
