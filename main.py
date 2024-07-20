@@ -1,12 +1,13 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.secret_key = "hello"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
-
+migrate = Migrate(app,db)
 
 class Users(db.Model):
     _id = db.Column("id", db.Integer, primary_key=True)
@@ -17,8 +18,10 @@ class Users(db.Model):
     age = db.Column("age", db.Integer)
     weight = db.Column("weight", db.Float)
     height = db.Column("height", db.Float)
+    fitness_goal = db.Column("fitness_goal", db.String(100))
+    user_type = db.Column("user_type", db.String(100))
 
-    def __init__(self, first_name, last_name, email, password, age, weight, height):
+    def __init__(self, first_name, last_name, email, password, age, weight, height, fitness_goal, user_type):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -26,6 +29,8 @@ class Users(db.Model):
         self.age = age
         self.weight = weight
         self.height = height
+        self.fitness_goal = fitness_goal
+        self.user_type = user_type
 
     def check_password(self, password):
         return self.password == password
@@ -102,7 +107,6 @@ def view():
 def about():
     return render_template("about.html")
 
-
 @app.route("/register", methods=["POST", "GET"])
 def register():
     if request.method == "POST":
@@ -113,19 +117,20 @@ def register():
         age = request.form["age"]
         weight = request.form["weight"]
         height = request.form["height"]
+        fitness_goal = request.form["fitness_goal"]
+        user_type = request.form["user_type"]
         confirm_password = request.form["confirm_password"]
 
         if password != confirm_password:
             flash("Passwords do not match", "error")
             return redirect(url_for("register"))
 
-        new_user = Users(first_name, last_name, email, password, age, weight, height)
+        new_user = Users(first_name, last_name, email, password, age, weight, height, fitness_goal, user_type)
         db.session.add(new_user)
         db.session.commit()
         flash("Registration successful!", "success")
         return redirect(url_for("login"))
     return render_template("LoginPage.html")
-
 
 @app.route("/edit_user", methods=["POST", "GET"])
 def edit_user():
@@ -141,6 +146,8 @@ def edit_user():
             user.age = request.form["age"]
             user.weight = request.form["weight"]
             user.height = request.form["height"]
+            user.fitness_goal = request.form["fitness_goal"]
+            user.user_type = request.form["user_type"]
 
             db.session.commit()
             flash("User details updated successfully!", "success")

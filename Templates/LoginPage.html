@@ -61,6 +61,19 @@
             <input type="number" placeholder="Age" name="age" required>
             <input type="number" placeholder="Weight (kg)" name="weight" required>
             <input type="number" placeholder="Height (cm)" name="height" required>
+            <select name="fitness_goal" required>
+                        <option value="" disabled selected>Fitness Goal</option>
+                        <option value="lose_weight">Lose Weight</option>
+                        <option value="gain_muscle">Gain Muscle</option>
+                        <option value="maintain">Maintain</option>
+                        <option value="increase_endurance">Increase Endurance</option>
+                        <option value="improve_flexibility">Improve Flexibility</option>
+                    </select>
+                    <select name="user_type" required>
+                        <option value="" disabled selected>User Type</option>
+                        <option value="enthusiast">Enthusiast</option>
+                        <option value="fitness_coach">Fitness Coach</option>
+                    </select>
             <input type="submit" value="Register">
         </form>
     </div>
