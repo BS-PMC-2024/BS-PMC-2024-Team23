@@ -6,10 +6,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Users:</title>
 </head>
 <body>
-    <h1></h1>
+    <h1>All Users:</h1>
     <ul>
         {% for x in values %}
             <p>First Name: {{ x.first_name }}, Last Name: {{ x.last_name }}, Password: {{ x.password }}, Email: {{ x.email }}</p>

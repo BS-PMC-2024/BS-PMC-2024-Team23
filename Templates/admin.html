@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome Admin!{% endblock %}
+
+{% block content %}
+<div class="background-image">
+    <div class="container mt-5">
+        <div class="welcome-message">
+            <h1 class="text-center">Welcome back Admin!</h1>
+            <h2>All Users:</h2>
+            <ul>
+            {% for x in values %}
+                <li>First Name: {{ x.first_name }}, Last Name: {{ x.last_name }}, Email: {{ x.email }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

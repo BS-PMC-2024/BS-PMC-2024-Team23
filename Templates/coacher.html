@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome Coach!{% endblock %}
+
+{% block content %}
+<!--coach page-->
+<div class="background-image">
+    <div class="container mt-5">
+        <div class="welcome-message">
+            <h1 class="text-center">Welcome Coach!</h1>
+            <h2 class="text-center mt-10">About Me:</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    <p id="coach-info">{{ coach_info }}</p>
+                    <!-- Button trigger modal -->
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal">
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit About Me</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="/coach" method="POST">
+                    <div class="form-group">
+                        <textarea class="form-control" id="about-text" name="about_text" rows="5">{{ coach_info }}</textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,9 +1,15 @@
+/* user.css */
+.form-group {
+    margin-bottom: 15px;
+}
+
 body {
     background-color: #ADD8E6; /* Light blue background color */
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
 }
+
 
 .background-image {
     background-image: url('{{ url_for('static', filename='images\BG.webp') }}');

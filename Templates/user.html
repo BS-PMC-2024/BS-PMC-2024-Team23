@@ -1,5 +1,6 @@
-{%extends "base.html" %}
-{% block title %}{% endblock %}
+{% extends "base.html" %}
+{% block title %}Welcome to Your Personal Trainer{% endblock %}
+
 {% block content %}
 <!--user page-->
 <!DOCTYPE html>
@@ -22,14 +23,19 @@
                 <div class="col-md-6 offset-md-3">
                     <div class="card">
                         <div class="card-body">
-                            <h2 class="text-center">Update Your Email</h2>
+                            <h2 class="text-center">What is your goal?</h2>
                             <form action="#" method="POST">
+
                                 <div class="form-group">
-                                    <label for="email">Enter your new email</label>
-                                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter new email" value="{{ email if email }}">
+                                    <label for="goal">Select your goal</label>
+                                    <select name="goal" id="goal" class="form-control">
+                                        <option value="lose_weight">To lose weight</option>
+                                        <option value="gain_weight">To gain weight</option>
+                                        <option value="maintain_weight">To maintain weight</option>
+                                    </select>
                                 </div>
                                 <div class="form-group text-center mt-3">
-                                    <input type="submit" name="submit" class="btn btn-primary" value="Update">
+                                    <input type="submit" class="btn btn-primary" value="Submit">
                                 </div>
                             </form>
                         </div>
