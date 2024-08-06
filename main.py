@@ -1,14 +1,15 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+
 
 app = Flask(__name__)
 app.secret_key = "hello"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+'''
 migrate = Migrate(app,db)
-
+'''
 class Users(db.Model):
     _id = db.Column("id", db.Integer, primary_key=True)
     first_name = db.Column("first_name", db.String(100))
