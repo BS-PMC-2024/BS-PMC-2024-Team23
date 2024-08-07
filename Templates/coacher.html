@@ -3,7 +3,6 @@
 {% block title %}Welcome Coach!{% endblock %}
 
 {% block content %}
-<!--coach page-->
 <div class="background-image">
     <div class="container mt-5">
         <div class="welcome-message">
@@ -48,5 +47,17 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
+<!-- Display Topics -->
+<div class="container mt-5">
+    <h2 class="text-center">Topics</h2>
+    <ul class="list-group">
+        {% for topic in topics %}
+            <li class="list-group-item">
+                <h5>{{ topic.title }}</h5>
+                <p>{{ topic.description }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Topics{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Manage Topics</h1>
+
+    <!-- Add New Topic -->
+    <form method="POST">
+        <h2>Add New Topic</h2>
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" class="form-control" required></textarea>
+        </div>
+        <button type="submit" name="action" value="add" class="btn btn-primary">Add Topic</button>
+    </form>
+
+    <hr>
+
+    <!-- Edit/Delete Existing Topics -->
+    <h2>Existing Topics</h2>
+    <ul class="list-group">
+    {% for topic in topics %}
+        <li class="list-group-item">
+            <form method="POST">
+                <input type="hidden" name="topic_id" value="{{ topic._id }}">
+                <div class="form-group">
+                    <label for="edit_title_{{ topic._id }}">Title</label>
+                    <input type="text" id="edit_title_{{ topic._id }}" name="title" class="form-control" value="{{ topic.title }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_description_{{ topic._id }}">Description</label>
+                    <textarea id="edit_description_{{ topic._id }}" name="description" class="form-control" required>{{ topic.description }}</textarea>
+                </div>
+                <button type="submit" name="action" value="edit" class="btn btn-warning">Update Topic</button>
+                <button type="submit" name="action" value="delete" class="btn btn-danger">Delete Topic</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}
