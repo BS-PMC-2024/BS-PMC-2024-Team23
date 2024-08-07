@@ -21,9 +21,29 @@
             <li class="nav-item">
                 <a class="nav-link" href="/edit_user">Edit profile</a>
             </li>
+
+            {% if current_user and current_user.user_type == 'Admin' %}
+            <li class="nav-item">
+                <a class="nav-link" href="/remove_users">Remove Users</a>
+            </li>
+            {% endif %}
+
+            {% if session.user_type == 'Admin' %}
+            <li class="nav-item">
+                <a class="nav-link" href="/edit_user_admin">Edit Users</a>
+            </li>
+            {% endif %}
+
+            {% if session.get("user_type") == 'Admin' %}
+            <li class="nav-item">
+                <a class="nav-link" href="/manage_topics">Manage Topics</a>
+            </li>
+            {% endif %}
+
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
+
         </ul>
     </div>
 </nav>

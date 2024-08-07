@@ -8,9 +8,10 @@
         <div class="welcome-message">
             <h1 class="text-center">Welcome back Admin!</h1>
             <h2>All Users:</h2>
-            <ul>
+
+            <ul style="list-style-type: none;">
             {% for x in values %}
-                <li>First Name: {{ x.first_name }}, Last Name: {{ x.last_name }}, Email: {{ x.email }}</li>
+                <li>{{x._id}}.  First Name: {{ x.first_name }}, Last Name: {{ x.last_name }}, Type: {{ x.user_type }}, Email: {{ x.email }}</li>
             {% endfor %}
             </ul>
         </div>

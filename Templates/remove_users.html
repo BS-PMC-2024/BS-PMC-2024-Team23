@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Remove Users{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Remove Users</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label for="user_id">Select User ID:</label>
+            <select class="form-control" id="user_id" name="user_id">
+                {% for user in users %}
+                <option value="{{ user._id }}">{{ user.first_name }} {{ user.last_name }} - ID: {{ user._id }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-danger">Remove User</button>
+    </form>
+</div>
+{% endblock %}

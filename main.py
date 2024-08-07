@@ -9,6 +9,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+
 class Users(db.Model):
     _id = db.Column("id", db.Integer, primary_key=True)
     first_name = db.Column("first_name", db.String(100))
@@ -34,9 +35,21 @@ class Users(db.Model):
     def check_password(self, password):
         return self.password == password
 
+
+@app.context_processor
+def inject_user():
+    """הפונקציה הזאת מוודאת שהמשתמש הנוכחי יועבר לכל תבנית."""
+    user_email = session.get("email")
+    user_type = session.get("user_type")
+    user = Users.query.filter_by(email=user_email).first() if user_email else None
+    return dict(current_user=user)
+
+
 @app.route("/")
 def home():
     return render_template("LoginPage.html")
+
+
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
@@ -79,25 +92,27 @@ def admin():
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
-
 @app.route("/user", methods=["POST", "GET"])
 def user():
     if "user" in session:
-        user = session["user"]
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        topics = Topics.query.all()  # לקבל את כל הנושאים
+
         if request.method == "POST":
-            email = request.form["email"]
+            # עדכון פרטי המשתמש
             goal = request.form["goal"]
-            session["email"] = email
-            # אפשר להוסיף את ה-goal למשתמש ב-DATABASE כאן
+            # אפשר להוסיף את ה-goal למשתמש ב-DATABASE כאן (אם יש צורך)
+            # user.goal = goal  # דוגמה לעדכון המטרה (בהנחה שיש שדה כזה ב-database)
+            db.session.commit()
             flash("Information updated successfully!", "success")
             return redirect(url_for("user"))
 
-        if "email" in session:
-            email = session["email"]
-            flash("Already logged in", "info")
-        return render_template("user.html", email=email)
+        # הצגת מידע אישי ודפי נושאים
+        return render_template("user.html", email=email, topics=topics)
     else:
         return redirect(url_for("login"))
+
 
 @app.route("/logout")
 def logout():
@@ -106,13 +121,27 @@ def logout():
     flash("Sorry to see you go, bro", "info")
     return redirect(url_for("login"))
 
+
 @app.route("/view")
 def view():
     return render_template("view.html", values=Users.query.all())
 
+
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+class Topics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+
+    def __init__(self, title, description):
+        self.title = title
+        self.description = description
+
+
+
 @app.route("/register", methods=["POST", "GET"])
 def register():
     if request.method == "POST":
@@ -151,15 +180,20 @@ def coach():
     if "user" in session:
         email = session["email"]
         user = Users.query.filter_by(email=email).first()
+        topics = Topics.query.all()  # לקבל את כל הנושאים
+
         if request.method == "POST":
-            user.about_me = request.form["about_text"]  # עדכון הטקסט
+            user.about_me = request.form["about_text"]
             db.session.commit()
             flash("About Me updated successfully!", "success")
             return redirect(url_for("coach"))
-        return render_template("coacher.html", coach_info=user.about_me)
+
+        return render_template("coach.html", coach_info=user.about_me, topics=topics)
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
+
+
 
 @app.route("/edit_user", methods=["POST", "GET"])
 def edit_user():
@@ -185,6 +219,7 @@ def edit_user():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
+
 @app.route("/user")
 def user_home():
     if "user" in session:
@@ -199,6 +234,7 @@ def user_home():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
+
 @app.route("/home")
 def home_redirect():
     if "user" in session:
@@ -208,7 +244,7 @@ def home_redirect():
         if found_user.user_type == "Coach":
             return redirect(url_for("coach"))
         elif found_user.user_type == "Trainee":
-            return redirect(url_for("user"))
+                return redirect(url_for("user"))
         else:
             flash("Unknown user type", "danger")
             return redirect(url_for("login"))
@@ -217,8 +253,88 @@ def home_redirect():
         return redirect(url_for("login"))
 
 
+@app.route("/remove_users", methods=["GET", "POST"])
+def remove_users():
+    if "user" in session and session.get("user_type") == "Admin":
+        if request.method == "POST":
+            user_id = request.form["user_id"]
+            user_to_remove = Users.query.get(user_id)
+            if user_to_remove:
+                db.session.delete(user_to_remove)
+                db.session.commit()
+                flash("User removed successfully", "success")
+            else:
+                flash("User not found", "danger")
+        users = Users.query.all()
+        return render_template("remove_users.html", users=users)
+    else:
+        flash("You are not authorized to view this page", "danger")
+        return redirect(url_for("login"))
 
 
+@app.route("/edit_user_admin", methods=["GET", "POST"])
+def edit_user_admin():
+    if "user" in session and session.get("user_type") == "Admin":
+        users = Users.query.all()
+        selected_user = None
+
+        if request.method == "POST":
+            user_id = request.form.get("user_id")
+            selected_user = Users.query.get(user_id)
+
+            if "first_name" in request.form:
+                selected_user.first_name = request.form["first_name"]
+                selected_user.last_name = request.form["last_name"]
+                selected_user.email = request.form["email"]
+                selected_user.password = request.form["password"]
+                selected_user.age = request.form["age"]
+                selected_user.weight = request.form["weight"]
+                selected_user.height = request.form["height"]
+                selected_user.user_type = request.form["user_type"]
+
+                db.session.commit()
+                flash("User details updated successfully", "success")
+                return redirect(url_for("edit_user_admin"))
+
+        return render_template("edit_user_admin.html", users=users, selected_user=selected_user)
+    else:
+        flash("You are not authorized to view this page", "danger")
+        return redirect(url_for("login"))
+
+
+@app.route("/manage_topics", methods=["GET", "POST"])
+def manage_topics():
+    if "user" in session and session.get("user_type") == "Admin":
+        if request.method == "POST":
+            action = request.form.get("action")
+            title = request.form.get("title")
+            description = request.form.get("description")
+            topic_id = request.form.get("topic_id")
+
+            if action == "add":
+                new_topic = Topics(title=title, description=description)
+                db.session.add(new_topic)
+                db.session.commit()
+                flash("Topic added successfully!", "success")
+            elif action == "edit" and topic_id:
+                topic = Topics.query.get(topic_id)
+                if topic:
+                    topic.title = title
+                    topic.description = description
+                    db.session.commit()
+                    flash("Topic updated successfully!", "success")
+            elif action == "delete" and topic_id:
+                topic = Topics.query.get(topic_id)
+                if topic:
+                    db.session.delete(topic)
+                    db.session.commit()
+                    flash("Topic deleted successfully!", "success")
+
+        topics = Topics.query.all()
+        return render_template("manage_topics.html", topics=topics)
+    else:
+        flash("You are not authorized to view this page", "danger")
+        return redirect(url_for("login"))
 
 
 if __name__ == "__main__":

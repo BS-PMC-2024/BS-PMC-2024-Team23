@@ -2,7 +2,6 @@ from main import app, db, Users
 
 with app.app_context():
 
-    # יצירת משתמש Admin
     admin_user = Users(
         user_type="Admin",
         first_name="Admin",
@@ -14,7 +13,6 @@ with app.app_context():
         height=175.0
     )
 
-    # הוספת אדמין למסד הנתונים
     db.session.add(admin_user)
     db.session.commit()
 
