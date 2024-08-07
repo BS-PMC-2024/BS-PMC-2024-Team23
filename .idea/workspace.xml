@@ -5,17 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f91c182-9ffb-4277-b4a7-b9aa03969b26" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/Templates/edit_user_admin.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/manage_topics.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/remove_users.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/AI Project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/AI Project.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/admin.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/admin.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/coacher.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/coacher.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/user.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/user.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/add_admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/add_admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/instance/users.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/instance/users.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,30 +30,15 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;MatanAttias&quot;
-  }
-}</component>
   <component name="GithubDefaultAccount">
     <option name="defaultAccountId" value="1e37292a-7e9e-4c03-b2ba-c5c3c765f263" />
   </component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/BS-PMC-2024/BS-PMC-2024-Team23.git&quot;,
-    &quot;accountId&quot;: &quot;09529f59-a251-4f5e-a1e3-a9d93341ec27&quot;
-  }
-}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 6
-}</component>
   <component name="ProjectId" id="2iMsEP3nEZeQCRIspSgUMlwJj2O" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -69,17 +47,6 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Python.main.py.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Maor&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/maorhuri/Desktop/BS-PMC-2024-Team23 &quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
-  }
-}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="E:\Projects\BS-PMC-2024-Team23\jenkins" />
@@ -88,14 +55,12 @@
   <component name="RunManager">
     <configuration name="main.py" type="PythonConfigurationType" factoryName="Python">
       <module name="AI Project" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Users\WIN10\AppData\Local\Programs\Python\Python39\python.exe" />
-      <option name="SDK_NAME" value="Python 3.12" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -148,6 +113,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
