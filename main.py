@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages
+from flask import Flask, redirect, url_for, render_template, request, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -9,17 +9,16 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-
 class Users(db.Model):
-    _id = db.Column("id", db.Integer, primary_key=True)
-    first_name = db.Column("first_name", db.String(100))
-    last_name = db.Column("last_name", db.String(100))
-    email = db.Column("email", db.String(100))
-    password = db.Column("password", db.String(100))
-    age = db.Column("age", db.Integer)
-    weight = db.Column("weight", db.Float)
-    height = db.Column("height", db.Float)
-    user_type = db.Column("user_type", db.String(50))  # שדה סוג המשתמש החדש
+    id = db.Column(db.Integer, primary_key=True)  # השתנה מ-_id ל-id
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100))
+    age = db.Column(db.Integer)
+    weight = db.Column(db.Float)
+    height = db.Column(db.Float)
+    user_type = db.Column(db.String(50))  # שדה סוג המשתמש החדש
     about_me = db.Column(db.Text, nullable=True)  # עמודה חדשה שתשמור את הטקסט על המאמן
 
     def __init__(self, user_type, first_name, last_name, email, password, age, weight, height):
@@ -35,15 +34,21 @@ class Users(db.Model):
     def check_password(self, password):
         return self.password == password
 
+class Topics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+
+    def __init__(self, title, description):
+        self.title = title
+        self.description = description
 
 @app.context_processor
 def inject_user():
     """הפונקציה הזאת מוודאת שהמשתמש הנוכחי יועבר לכל תבנית."""
     user_email = session.get("email")
-    user_type = session.get("user_type")
     user = Users.query.filter_by(email=user_email).first() if user_email else None
     return dict(current_user=user)
-
 
 @app.route("/")
 def home():
@@ -82,8 +87,6 @@ def login():
                 return redirect(url_for("admin"))
         return render_template("LoginPage.html")
 
-
-
 @app.route("/admin")
 def admin():
     if "user" in session and session.get("user_type") == "Admin":
@@ -113,8 +116,6 @@ def user():
     else:
         return redirect(url_for("login"))
 
-
-
 @app.route("/logout")
 def logout():
     if "user" in session:
@@ -129,21 +130,9 @@ def logout():
 def view():
     return render_template("view.html", values=Users.query.all())
 
-
 @app.route("/about")
 def about():
     return render_template("about.html")
-
-class Topics(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-
-    def __init__(self, title, description):
-        self.title = title
-        self.description = description
-
-
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
@@ -196,8 +185,6 @@ def coach():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
-
-
 @app.route("/edit_user", methods=["POST", "GET"])
 def edit_user():
     if "user" in session:
@@ -222,40 +209,6 @@ def edit_user():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
-
-@app.route("/user")
-def user_home():
-    if "user" in session:
-        user_email = session["email"]
-        found_user = Users.query.filter_by(email=user_email).first()
-
-        if found_user.user_type == "Coach":
-            return redirect(url_for("coach"))
-        else:
-            return render_template("user.html", email=user_email)
-    else:
-        flash("You are not logged in", "danger")
-        return redirect(url_for("login"))
-
-
-@app.route("/home")
-def home_redirect():
-    if "user" in session:
-        user_email = session["email"]
-        found_user = Users.query.filter_by(email=user_email).first()
-
-        if found_user.user_type == "Coach":
-            return redirect(url_for("coach"))
-        elif found_user.user_type == "Trainee":
-                return redirect(url_for("user"))
-        else:
-            flash("Unknown user type", "danger")
-            return redirect(url_for("login"))
-    else:
-        flash("You are not logged in", "danger")
-        return redirect(url_for("login"))
-
-
 @app.route("/remove_users", methods=["GET", "POST"])
 def remove_users():
     if "user" in session and session.get("user_type") == "Admin":
@@ -273,7 +226,6 @@ def remove_users():
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
-
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])
 def edit_user_admin():
@@ -311,7 +263,7 @@ def manage_topics():
             action = request.form.get("action")
             title = request.form.get("title")
             description = request.form.get("description")
-            topic_id = request.form.get("topic_id")  # מוודא שזה נמצא ומעורב כראוי
+            topic_id = request.form.get("topic_id")
 
             if action == "add":
                 new_topic = Topics(title=title, description=description)
@@ -326,7 +278,7 @@ def manage_topics():
                     db.session.commit()
                     flash("Topic updated successfully!", "success")
                 else:
-                    flash("Topic not found.", "danger")  # הודעה אם לא מוצא
+                    flash("Topic not found.", "danger")
             elif action == "delete" and topic_id:
                 topic = Topics.query.get(topic_id)
                 if topic:
@@ -334,14 +286,13 @@ def manage_topics():
                     db.session.commit()
                     flash("Topic deleted successfully!", "success")
                 else:
-                    flash("Topic not found.", "danger")  # הודעה אם לא מוצא
+                    flash("Topic not found.", "danger")
 
         topics = Topics.query.all()
         return render_template("manage_topics.html", topics=topics)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
-
 
 if __name__ == "__main__":
     with app.app_context():
