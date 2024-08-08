@@ -49,7 +49,6 @@ def inject_user():
 def home():
     return render_template("LoginPage.html")
 
-
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
@@ -68,7 +67,7 @@ def login():
             elif found_user.user_type == "Trainee":
                 return redirect(url_for("user"))
             elif found_user.user_type == "Admin":
-                return redirect(url_for("admin"))  # הוספת ההפניה לדף Admin
+                return redirect(url_for("admin"))
         else:
             flash("User not found or incorrect password. Please register.", "danger")
             return redirect(url_for("home"))
@@ -80,8 +79,9 @@ def login():
             elif session.get("user_type") == "Trainee":
                 return redirect(url_for("user"))
             elif session.get("user_type") == "Admin":
-                return redirect(url_for("admin"))  # הוספת ההפניה לדף Admin
+                return redirect(url_for("admin"))
         return render_template("LoginPage.html")
+
 
 
 @app.route("/admin")
@@ -114,13 +114,16 @@ def user():
         return redirect(url_for("login"))
 
 
+
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
-    session.pop("email", None)
-    flash("Sorry to see you go, bro", "info")
+    if "user" in session:
+        session.pop("user", None)
+        session.pop("email", None)
+        flash("Sorry to see you go, bro", "info")
+    else:
+        flash("You are not logged in.", "danger")
     return redirect(url_for("login"))
-
 
 @app.route("/view")
 def view():
@@ -188,7 +191,7 @@ def coach():
             flash("About Me updated successfully!", "success")
             return redirect(url_for("coach"))
 
-        return render_template("coach.html", coach_info=user.about_me, topics=topics)
+        return render_template("coacher.html", coach_info=user.about_me, topics=topics)
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
@@ -301,7 +304,6 @@ def edit_user_admin():
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
-
 @app.route("/manage_topics", methods=["GET", "POST"])
 def manage_topics():
     if "user" in session and session.get("user_type") == "Admin":
@@ -309,7 +311,7 @@ def manage_topics():
             action = request.form.get("action")
             title = request.form.get("title")
             description = request.form.get("description")
-            topic_id = request.form.get("topic_id")
+            topic_id = request.form.get("topic_id")  # מוודא שזה נמצא ומעורב כראוי
 
             if action == "add":
                 new_topic = Topics(title=title, description=description)
@@ -323,12 +325,16 @@ def manage_topics():
                     topic.description = description
                     db.session.commit()
                     flash("Topic updated successfully!", "success")
+                else:
+                    flash("Topic not found.", "danger")  # הודעה אם לא מוצא
             elif action == "delete" and topic_id:
                 topic = Topics.query.get(topic_id)
                 if topic:
                     db.session.delete(topic)
                     db.session.commit()
                     flash("Topic deleted successfully!", "success")
+                else:
+                    flash("Topic not found.", "danger")  # הודעה אם לא מוצא
 
         topics = Topics.query.all()
         return render_template("manage_topics.html", topics=topics)

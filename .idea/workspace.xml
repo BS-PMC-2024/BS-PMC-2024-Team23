@@ -5,15 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f91c182-9ffb-4277-b4a7-b9aa03969b26" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/Templates/edit_user_admin.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/manage_topics.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/remove_users.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/admin.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/admin.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/coacher.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/coacher.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/user.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/user.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/add_admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/add_admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/manage_topics.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/manage_topics.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/instance/users.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/instance/users.sqlite3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -43,9 +37,6 @@
     &quot;assignee&quot;: &quot;MatanAttias&quot;
   }
 }</component>
-  <component name="GithubDefaultAccount">
-    <option name="defaultAccountId" value="1e37292a-7e9e-4c03-b2ba-c5c3c765f263" />
-  </component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/BS-PMC-2024/BS-PMC-2024-Team23.git&quot;,
@@ -126,6 +117,15 @@
       <option name="presentableId" value="Default" />
       <updated>1719311667572</updated>
     </task>
+    <task id="LOCAL‎-00001" summary="Changes">
+      <option name="closed" value="true" />
+      <created>1723054227477</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL‎-00001" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1723054227477</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -151,5 +151,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="Changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Changes" />
   </component>
 </project>
