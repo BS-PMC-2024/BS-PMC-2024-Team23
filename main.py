@@ -83,7 +83,6 @@ def login():
                 return redirect(url_for("admin"))  # הוספת ההפניה לדף Admin
         return render_template("LoginPage.html")
 
-
 @app.route("/admin")
 def admin():
     if "user" in session and session.get("user_type") == "Admin":
