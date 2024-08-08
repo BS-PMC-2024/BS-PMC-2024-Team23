@@ -120,7 +120,7 @@ def logout():
     if "user" in session:
         session.pop("user", None)
         session.pop("email", None)
-        flash("Sorry to see you go, bro", "info")
+        flash("Bye, see you next time", "info")
     else:
         flash("You are not logged in.", "danger")
     return redirect(url_for("login"))
