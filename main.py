@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, session, flash
+from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -8,6 +8,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
 
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # השתנה מ-_id ל-id
@@ -132,6 +133,7 @@ def user():
     else:
         return redirect(url_for("login"))
 
+
 @app.route("/logout")
 def logout():
     if "user" in session:
@@ -145,6 +147,18 @@ def logout():
 @app.route("/view")
 def view():
     return render_template("view.html", values=Users.query.all())
+
+
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        # Handle form submission
+        user_feedback = request.form.get("feedback")
+        # Here you could save the feedback to a database or send an email to admins
+        # For demonstration, we'll just print it to the console
+        print(f"Feedback received: {user_feedback}")
+        return redirect(url_for("user"))  # Redirect to home or another page after submission
+    return render_template("feedback.html")
 
 @app.route("/about")
 def about():
@@ -221,6 +235,39 @@ def edit_user():
             return redirect(url_for("user"))
 
         return render_template("edit_user.html", user=user)
+    else:
+        flash("You are not logged in", "danger")
+        return redirect(url_for("login"))
+
+
+@app.route("/user")
+def user_home():
+    if "user" in session:
+        user_email = session["email"]
+        found_user = Users.query.filter_by(email=user_email).first()
+
+        if found_user.user_type == "Coach":
+            return redirect(url_for("coach"))
+        else:
+            return render_template("user.html", email=user_email)
+    else:
+        flash("You are not logged in", "danger")
+        return redirect(url_for("login"))
+
+
+@app.route("/home" )
+def home_redirect():
+    if "user" in session:
+        user_email = session["email"]
+        found_user = Users.query.filter_by(email=user_email).first()
+
+        if found_user.user_type == "Coach":
+            return redirect(url_for("coach"))
+        elif found_user.user_type == "Trainee":
+                return redirect(url_for("user"))
+        else:
+            flash("Unknown user type", "danger")
+            return redirect(url_for("login"))
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
