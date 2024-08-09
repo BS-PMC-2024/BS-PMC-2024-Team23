@@ -7,13 +7,28 @@
     <div class="container mt-5">
         <div class="welcome-message">
             <h1 class="text-center">Welcome back Admin!</h1>
-            <h2>All Users:</h2>
 
+            <!-- Search Form -->
+            <form method="GET" action="{{ url_for('admin') }}">
+                <div class="form-group">
+                    <input type="text" name="search_query" class="form-control" placeholder="Search by ID or Email">
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+
+            <h2>All Users:</h2>
             <ul style="list-style-type: none;">
             {% for x in values %}
-                <li>{{x._id}}.  First Name: {{ x.first_name }}, Last Name: {{ x.last_name }}, Type: {{ x.user_type }}, Email: {{ x.email }}</li>
+                <li>{{x.id}}. First Name: {{ x.first_name }}, Last Name: {{ x.last_name }}, Type: {{ x.user_type }}, Email: {{ x.email }}</li>
             {% endfor %}
             </ul>
+        </div>
+        <!-- Counters -->
+        <div class="mt-5">
+            <h2>System Statistics:</h2>
+            <p>Total Users: {{ total_users }}</p>
+            <p>Coaches: {{ total_coaches }}</p>
+            <p>Trainees: {{ total_trainees }}</p>
         </div>
     </div>
 </div>

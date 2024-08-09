@@ -87,13 +87,29 @@ def login():
                 return redirect(url_for("admin"))
         return render_template("LoginPage.html")
 
-@app.route("/admin")
+@app.route("/admin", methods=["GET"])
 def admin():
     if "user" in session and session.get("user_type") == "Admin":
-        return render_template("admin.html", values=Users.query.all())
+        search_query = request.args.get('search_query')
+
+        if search_query:
+            # Search by ID or Email
+            users = Users.query.filter(
+                (Users.id == search_query) | (Users.email.like(f"%{search_query}%"))
+            ).all()
+        else:
+            users = Users.query.all()
+
+        # Counters
+        total_users = Users.query.count()
+        total_coaches = Users.query.filter_by(user_type="Coach").count()
+        total_trainees = Users.query.filter_by(user_type="Trainee").count()
+
+        return render_template("admin.html", values=users, total_users=total_users, total_coaches=total_coaches, total_trainees=total_trainees)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
+
 
 @app.route("/user", methods=["POST", "GET"])
 def user():
@@ -209,23 +225,27 @@ def edit_user():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
+
 @app.route("/remove_users", methods=["GET", "POST"])
 def remove_users():
     if "user" in session and session.get("user_type") == "Admin":
         if request.method == "POST":
             user_id = request.form["user_id"]
             user_to_remove = Users.query.get(user_id)
+
             if user_to_remove:
                 db.session.delete(user_to_remove)
                 db.session.commit()
                 flash("User removed successfully", "success")
             else:
                 flash("User not found", "danger")
+
         users = Users.query.all()
         return render_template("remove_users.html", users=users)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
+
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])
 def edit_user_admin():
