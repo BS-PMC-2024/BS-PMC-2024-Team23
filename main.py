@@ -92,6 +92,8 @@ def admin():
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
+# test
+
 @app.route("/user", methods=["POST", "GET"])
 def user():
     if "user" in session:
