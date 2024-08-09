@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -340,6 +342,11 @@ def manage_topics():
 
 
 if __name__ == "__main__":
+    # Print all files in Templates folder
+    templates_dir = os.path.join(os.getcwd(), 'Templates')  # Get absolute path
+    for filename in os.listdir(templates_dir):
+        print(filename)
+
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0',port=5000)
