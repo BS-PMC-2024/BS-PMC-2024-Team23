@@ -9,7 +9,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# test
+# test 2
 
 class Users(db.Model):
     _id = db.Column("id", db.Integer, primary_key=True)
