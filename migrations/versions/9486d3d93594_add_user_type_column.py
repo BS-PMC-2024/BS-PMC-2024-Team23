@@ -1,7 +1,7 @@
 """Add user_type column
 
 Revision ID: 9486d3d93594
-Revises: 
+Revises:
 Create Date: 2024-07-20 18:47:29.109225
 
 """

@@ -14,15 +14,15 @@ migrate = Migrate(app, db)
 # test 2
 
 class Users(db.Model):
-    _id = db.Column("id", db.Integer, primary_key=True)
-    first_name = db.Column("first_name", db.String(100))
-    last_name = db.Column("last_name", db.String(100))
-    email = db.Column("email", db.String(100))
-    password = db.Column("password", db.String(100))
-    age = db.Column("age", db.Integer)
-    weight = db.Column("weight", db.Float)
-    height = db.Column("height", db.Float)
-    user_type = db.Column("user_type", db.String(50))  # שדה סוג המשתמש החדש
+    id = db.Column(db.Integer, primary_key=True)  # השתנה מ-_id ל-id
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100))
+    age = db.Column(db.Integer)
+    weight = db.Column(db.Float)
+    height = db.Column(db.Float)
+    user_type = db.Column(db.String(50))  # שדה סוג המשתמש החדש
     about_me = db.Column(db.Text, nullable=True)  # עמודה חדשה שתשמור את הטקסט על המאמן
 
     def __init__(self, user_type, first_name, last_name, email, password, age, weight, height):
@@ -38,20 +38,25 @@ class Users(db.Model):
     def check_password(self, password):
         return self.password == password
 
+class Topics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+
+    def __init__(self, title, description):
+        self.title = title
+        self.description = description
 
 @app.context_processor
 def inject_user():
     """הפונקציה הזאת מוודאת שהמשתמש הנוכחי יועבר לכל תבנית."""
     user_email = session.get("email")
-    user_type = session.get("user_type")
     user = Users.query.filter_by(email=user_email).first() if user_email else None
     return dict(current_user=user)
-
 
 @app.route("/")
 def home():
     return render_template("LoginPage.html")
-
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -71,7 +76,7 @@ def login():
             elif found_user.user_type == "Trainee":
                 return redirect(url_for("user"))
             elif found_user.user_type == "Admin":
-                return redirect(url_for("admin"))  # הוספת ההפניה לדף Admin
+                return redirect(url_for("admin"))
         else:
             flash("User not found or incorrect password. Please register.", "danger")
             return redirect(url_for("home"))
@@ -83,18 +88,32 @@ def login():
             elif session.get("user_type") == "Trainee":
                 return redirect(url_for("user"))
             elif session.get("user_type") == "Admin":
-                return redirect(url_for("admin"))  # הוספת ההפניה לדף Admin
+                return redirect(url_for("admin"))
         return render_template("LoginPage.html")
 
-@app.route("/admin")
+@app.route("/admin", methods=["GET"])
 def admin():
     if "user" in session and session.get("user_type") == "Admin":
-        return render_template("admin.html", values=Users.query.all())
+        search_query = request.args.get('search_query')
+
+        if search_query:
+            # Search by ID or Email
+            users = Users.query.filter(
+                (Users.id == search_query) | (Users.email.like(f"%{search_query}%"))
+            ).all()
+        else:
+            users = Users.query.all()
+
+        # Counters
+        total_users = Users.query.count()
+        total_coaches = Users.query.filter_by(user_type="Coach").count()
+        total_trainees = Users.query.filter_by(user_type="Trainee").count()
+
+        return render_template("admin.html", values=users, total_users=total_users, total_coaches=total_coaches, total_trainees=total_trainees)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
-# test
 
 @app.route("/user", methods=["POST", "GET"])
 def user():
@@ -120,31 +139,33 @@ def user():
 
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
-    session.pop("email", None)
-    flash("Sorry to see you go, bro", "info")
+    if "user" in session:
+        session.pop("user", None)
+        session.pop("email", None)
+        flash("Bye, see you next time", "info")
+    else:
+        flash("You are not logged in.", "danger")
     return redirect(url_for("login"))
-
 
 @app.route("/view")
 def view():
     return render_template("view.html", values=Users.query.all())
 
 
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        # Handle form submission
+        user_feedback = request.form.get("feedback")
+        # Here you could save the feedback to a database or send an email to admins
+        # For demonstration, we'll just print it to the console
+        print(f"Feedback received: {user_feedback}")
+        return redirect(url_for("user"))  # Redirect to home or another page after submission
+    return render_template("feedback.html")
+
 @app.route("/about")
 def about():
     return render_template("about.html")
-
-class Topics(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-
-    def __init__(self, title, description):
-        self.title = title
-        self.description = description
-
-
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
@@ -192,12 +213,10 @@ def coach():
             flash("About Me updated successfully!", "success")
             return redirect(url_for("coach"))
 
-        return render_template("coach.html", coach_info=user.about_me, topics=topics)
+        return render_template("coacher.html", coach_info=user.about_me, topics=topics)
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
-
-
 
 @app.route("/edit_user", methods=["POST", "GET"])
 def edit_user():
@@ -239,7 +258,7 @@ def user_home():
         return redirect(url_for("login"))
 
 
-@app.route("/home")
+@app.route("/home" )
 def home_redirect():
     if "user" in session:
         user_email = session["email"]
@@ -263,12 +282,14 @@ def remove_users():
         if request.method == "POST":
             user_id = request.form["user_id"]
             user_to_remove = Users.query.get(user_id)
+
             if user_to_remove:
                 db.session.delete(user_to_remove)
                 db.session.commit()
                 flash("User removed successfully", "success")
             else:
                 flash("User not found", "danger")
+
         users = Users.query.all()
         return render_template("remove_users.html", users=users)
     else:
@@ -305,7 +326,6 @@ def edit_user_admin():
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
-
 @app.route("/manage_topics", methods=["GET", "POST"])
 def manage_topics():
     if "user" in session and session.get("user_type") == "Admin":
@@ -327,19 +347,22 @@ def manage_topics():
                     topic.description = description
                     db.session.commit()
                     flash("Topic updated successfully!", "success")
+                else:
+                    flash("Topic not found.", "danger")
             elif action == "delete" and topic_id:
                 topic = Topics.query.get(topic_id)
                 if topic:
                     db.session.delete(topic)
                     db.session.commit()
                     flash("Topic deleted successfully!", "success")
+                else:
+                    flash("Topic not found.", "danger")
 
         topics = Topics.query.all()
         return render_template("manage_topics.html", topics=topics)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
-
 
 if __name__ == "__main__":
     # Print all files in Templates folder
