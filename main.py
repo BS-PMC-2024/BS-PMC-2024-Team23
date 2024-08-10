@@ -1,8 +1,12 @@
 import os
 
-from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages
+from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from enum import Enum
+
+from gender import Gender
+from openAIManager import call_openAI
 
 app = Flask(__name__)
 app.secret_key = "hello"
@@ -11,7 +15,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# test 2
 
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # השתנה מ-_id ל-id
@@ -34,9 +37,9 @@ class Users(db.Model):
         self.age = age
         self.weight = weight
         self.height = height
-
     def check_password(self, password):
         return self.password == password
+
 
 class Topics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,6 +50,7 @@ class Topics(db.Model):
         self.title = title
         self.description = description
 
+
 @app.context_processor
 def inject_user():
     """הפונקציה הזאת מוודאת שהמשתמש הנוכחי יועבר לכל תבנית."""
@@ -54,9 +58,11 @@ def inject_user():
     user = Users.query.filter_by(email=user_email).first() if user_email else None
     return dict(current_user=user)
 
+
 @app.route("/")
 def home():
     return render_template("LoginPage.html")
+
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -91,6 +97,7 @@ def login():
                 return redirect(url_for("admin"))
         return render_template("LoginPage.html")
 
+
 @app.route("/admin", methods=["GET"])
 def admin():
     if "user" in session and session.get("user_type") == "Admin":
@@ -109,7 +116,8 @@ def admin():
         total_coaches = Users.query.filter_by(user_type="Coach").count()
         total_trainees = Users.query.filter_by(user_type="Trainee").count()
 
-        return render_template("admin.html", values=users, total_users=total_users, total_coaches=total_coaches, total_trainees=total_trainees)
+        return render_template("admin.html", values=users, total_users=total_users, total_coaches=total_coaches,
+                               total_trainees=total_trainees)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
@@ -147,6 +155,7 @@ def logout():
         flash("You are not logged in.", "danger")
     return redirect(url_for("login"))
 
+
 @app.route("/view")
 def view():
     return render_template("view.html", values=Users.query.all())
@@ -163,9 +172,11 @@ def feedback():
         return redirect(url_for("user"))  # Redirect to home or another page after submission
     return render_template("feedback.html")
 
+
 @app.route("/about")
 def about():
     return render_template("about.html")
+
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
@@ -200,6 +211,7 @@ def register():
 
     return render_template("LoginPage.html")
 
+
 @app.route("/coach", methods=["GET", "POST"])
 def coach():
     if "user" in session:
@@ -217,6 +229,7 @@ def coach():
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
+
 
 @app.route("/edit_user", methods=["POST", "GET"])
 def edit_user():
@@ -258,7 +271,7 @@ def user_home():
         return redirect(url_for("login"))
 
 
-@app.route("/home" )
+@app.route("/home")
 def home_redirect():
     if "user" in session:
         user_email = session["email"]
@@ -267,7 +280,7 @@ def home_redirect():
         if found_user.user_type == "Coach":
             return redirect(url_for("coach"))
         elif found_user.user_type == "Trainee":
-                return redirect(url_for("user"))
+            return redirect(url_for("user"))
         else:
             flash("Unknown user type", "danger")
             return redirect(url_for("login"))
@@ -326,6 +339,29 @@ def edit_user_admin():
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
+
+@app.route("/create_program", methods=["POST"])
+def create_program():
+    data = request.get_json()
+    email = data.get("email")
+    user = Users.query.filter_by(email=email).first()
+    name = f"{user.first_name} {user.last_name}"
+    gender = Gender.MALE
+    # try:
+    #     if user.gender.lower() == "female":
+    #         gender = Gender.FEMALE
+    #
+    # except KeyError:
+    #     return jsonify({"error": "Invalid gender.py value"}), 400
+
+    # Call the function with collected data
+    try:
+        response = call_openAI(name, user.age, gender, user.weight, user.height, user.about_me)
+        return jsonify({"program": response}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/manage_topics", methods=["GET", "POST"])
 def manage_topics():
     if "user" in session and session.get("user_type") == "Admin":
@@ -364,12 +400,12 @@ def manage_topics():
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
-if __name__ == "__main__":
-    # Print all files in Templates folder
-    templates_dir = os.path.join(os.getcwd(), 'Templates')  # Get absolute path
-    for filename in os.listdir(templates_dir):
-        print(filename)
 
+if __name__ == "__main__":
+    # # Print all files in Templates folder
+    # templates_dir = os.path.join(os.getcwd(), 'Templates')  # Get absolute path
+    # for filename in os.listdir(templates_dir):
+    #     print(filename)
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host='0.0.0.0',port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
