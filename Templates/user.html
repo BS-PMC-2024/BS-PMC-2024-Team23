@@ -44,6 +44,43 @@
                 {% endfor %}
             </ul>
         </div>
+        <!-- Button to call create_program API -->
+        <div class="container mt-5 text-center">
+            <button id="createProgramBtn" class="btn btn-success">Create Program</button>
+        </div>
+        <!-- Container for displaying API response -->
+        <div class="container mt-5">
+            <h2 class="text-center">Response</h2>
+            <div id="apiResponse" class="alert alert-info" role="alert">
+                <!-- Response will be inserted here -->
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+document.getElementById('createProgramBtn').addEventListener('click', function() {
+    fetch('/create_program', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // Add any necessary headers here
+        },
+        body: JSON.stringify({
+            "email":"admin@admin.com"
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        // Display the response in the designated container
+        document.getElementById('apiResponse').innerText = JSON.stringify(data, null, 2);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        document.getElementById('apiResponse').innerText = 'An error occurred: ' + error;
+    });
+});
+</script>
+
 {% endblock %}

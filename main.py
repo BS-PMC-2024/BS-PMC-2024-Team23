@@ -37,6 +37,7 @@ class Users(db.Model):
         self.age = age
         self.weight = weight
         self.height = height
+
     def check_password(self, password):
         return self.password == password
 
@@ -195,6 +196,12 @@ def register():
             flash("Passwords do not match", "error")
             return redirect(url_for("register"))
 
+        # Check if email already exists
+        existing_user = Users.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Email is already taken", "error")
+            return redirect(url_for("register"))
+
         new_user = Users(user_type, first_name, last_name, email, password, age, weight, height)
         db.session.add(new_user)
         db.session.commit()
@@ -209,7 +216,7 @@ def register():
             flash("Invalid user type", "danger")
             return redirect(url_for("register"))
 
-    return render_template("LoginPage.html")
+    return render_template("register.html")
 
 
 @app.route("/coach", methods=["GET", "POST"])
@@ -342,24 +349,27 @@ def edit_user_admin():
 
 @app.route("/create_program", methods=["POST"])
 def create_program():
-    data = request.get_json()
-    email = data.get("email")
-    user = Users.query.filter_by(email=email).first()
-    name = f"{user.first_name} {user.last_name}"
-    gender = Gender.MALE
-    # try:
-    #     if user.gender.lower() == "female":
-    #         gender = Gender.FEMALE
-    #
-    # except KeyError:
-    #     return jsonify({"error": "Invalid gender.py value"}), 400
+    if "user" in session:
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        name = f"{user.first_name} {user.last_name}"
+        gender = Gender.MALE
+        # try:
+        #     if user.gender.lower() == "female":
+        #         gender = Gender.FEMALE
+        #
+        # except KeyError:
+        #     return jsonify({"error": "Invalid gender.py value"}), 400
 
-    # Call the function with collected data
-    try:
-        response = call_openAI(name, user.age, gender, user.weight, user.height, user.about_me)
-        return jsonify({"program": response}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Call the function with collected data
+        try:
+            print("calling openAI api...")
+            response = call_openAI(name, user.age, gender, user.weight, user.height, user.about_me)
+            print("response received")
+            return jsonify({"program": response}), 201
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    return jsonify({"error": str("no user in session")}), 500
 
 
 @app.route("/manage_topics", methods=["GET", "POST"])
