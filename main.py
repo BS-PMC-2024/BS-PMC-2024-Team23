@@ -54,6 +54,7 @@ def inject_user():
 def home():
     return render_template("LoginPage.html")
 
+
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
@@ -151,6 +152,12 @@ def register():
             flash("Passwords do not match", "error")
             return redirect(url_for("register"))
 
+        # Check if email already exists
+        existing_user = Users.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Email is already taken", "error")
+            return redirect(url_for("register"))
+
         new_user = Users(user_type, first_name, last_name, email, password, age, weight, height)
         db.session.add(new_user)
         db.session.commit()
@@ -165,7 +172,7 @@ def register():
             flash("Invalid user type", "danger")
             return redirect(url_for("register"))
 
-    return render_template("LoginPage.html")
+    return render_template("register.html")
 
 @app.route("/coach", methods=["GET", "POST"])
 def coach():
