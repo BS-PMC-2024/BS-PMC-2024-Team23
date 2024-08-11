@@ -37,10 +37,10 @@
             <h2 class="text-center">Topics</h2>
             <ul class="list-group">
                 {% for topic in topics %}
-                    <li class="list-group-item">
-                        <h5>{{ topic.title }}</h5>
-                        <p>{{ topic.description }}</p>
-                    </li>
+                <li class="list-group-item">
+                    <h5>{{ topic.title }}</h5>
+                    <p>{{ topic.description }}</p>
+                </li>
                 {% endfor %}
             </ul>
         </div>
@@ -50,36 +50,67 @@
         </div>
         <!-- Container for displaying API response -->
         <div class="container mt-5">
-            <h2 class="text-center">Response</h2>
+            <h2 class="text-center">Program</h2>
             <div id="apiResponse" class="alert alert-info" role="alert">
-                <!-- Response will be inserted here -->
+                <p>no program yet</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-document.getElementById('createProgramBtn').addEventListener('click', function() {
-    fetch('/create_program', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            // Add any necessary headers here
-        },
-        body: JSON.stringify({
-            "email":"admin@admin.com"
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+document.getElementById('createProgramBtn').addEventListener('click', async function() {
+    try {
+        const response = await fetch('/create_program', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add any necessary headers here
+            },
+            body: JSON.stringify({})
+        });
+
+        const data = await response.json();
         console.log('Success:', data);
+
         // Display the response in the designated container
-        document.getElementById('apiResponse').innerText = JSON.stringify(data, null, 2);
-    })
-    .catch((error) => {
+        const responseContainer = document.getElementById('apiResponse');
+        responseContainer.innerHTML = ''; // Clear previous content
+
+        if (data.program) {
+            const programLines = data.program.split('\n');
+            let currentDay = null;
+            let dayContainer = null;
+
+            programLines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('Day')) {
+                    if (dayContainer) {
+                        responseContainer.appendChild(dayContainer);
+                    }
+                    currentDay = line;
+                    dayContainer = document.createElement('div');
+                    dayContainer.className = 'mb-4';
+                    const dayTitle = document.createElement('h3');
+                    dayTitle.textContent = currentDay;
+                    dayContainer.appendChild(dayTitle);
+                } else if (line && dayContainer) {
+                    const exerciseItem = document.createElement('p');
+                    exerciseItem.textContent = line;
+                    dayContainer.appendChild(exerciseItem);
+                }
+            });
+
+            if (dayContainer) {
+                responseContainer.appendChild(dayContainer);
+            }
+        } else {
+            responseContainer.innerHTML = '<p>No program data available.</p>';
+        }
+    } catch (error) {
         console.error('Error:', error);
-        document.getElementById('apiResponse').innerText = 'An error occurred: ' + error;
-    });
+        document.getElementById('apiResponse').innerHTML = '<p class="text-danger">An error occurred: ' + error + '</p>';
+    }
 });
 </script>
 
