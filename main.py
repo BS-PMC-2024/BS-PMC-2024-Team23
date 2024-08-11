@@ -1,16 +1,17 @@
-import os
-
-from flask import Flask, redirect, url_for, render_template, request, session, flash, get_flashed_messages, jsonify
-from flask_sqlalchemy import SQLAlchemy
+import random
+from flask import Flask
+from flask import redirect, url_for, render_template, request, session, flash, jsonify
 from flask_migrate import Migrate
-from enum import Enum
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect
+from sqlalchemy.exc import SQLAlchemyError
 
 from gender import Gender
 from openAIManager import call_openAI
 
 app = Flask(__name__)
 app.secret_key = "hello"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://myuser:mypassword@localhost:5432/mydatabase"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -27,8 +28,9 @@ class Users(db.Model):
     height = db.Column(db.Float)
     user_type = db.Column(db.String(50))  # שדה סוג המשתמש החדש
     about_me = db.Column(db.Text, nullable=True)  # עמודה חדשה שתשמור את הטקסט על המאמן
+    program = db.Column(db.Text, nullable=True)
 
-    def __init__(self, user_type, first_name, last_name, email, password, age, weight, height):
+    def __init__(self, user_type, first_name, last_name, email, password, age, weight, height, about_me, program):
         self.user_type = user_type
         self.first_name = first_name
         self.last_name = last_name
@@ -37,6 +39,8 @@ class Users(db.Model):
         self.age = age
         self.weight = weight
         self.height = height
+        self.about_me = about_me
+        self.program = program
 
     def check_password(self, password):
         return self.password == password
@@ -141,7 +145,7 @@ def user():
             return redirect(url_for("user"))
 
         # הצגת מידע אישי ודפי נושאים
-        return render_template("user.html", email=email, topics=topics)
+        return render_template("user.html", email=email, topics=topics, program=user.program)
     else:
         return redirect(url_for("login"))
 
@@ -354,18 +358,14 @@ def create_program():
         user = Users.query.filter_by(email=email).first()
         name = f"{user.first_name} {user.last_name}"
         gender = Gender.MALE
-        # try:
-        #     if user.gender.lower() == "female":
-        #         gender = Gender.FEMALE
-        #
-        # except KeyError:
-        #     return jsonify({"error": "Invalid gender.py value"}), 400
 
         # Call the function with collected data
         try:
             print("calling openAI api...")
             response = call_openAI(name, user.age, gender, user.weight, user.height, user.about_me)
             print("response received")
+            user.program = response
+            db.session.commit()
             return jsonify({"program": response}), 201
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -411,11 +411,51 @@ def manage_topics():
         return redirect(url_for("login"))
 
 
+def create_users_table():
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if not inspector.has_table('users'):
+            db.create_all()
+            print("Users table created!")
+        else:
+            print("Users table already exists!")
+
+
+def load_fake_data():
+    fake_names = ['John', 'Jane', 'Alice', 'Bob', 'Charlie']
+    fake_domains = ['example.com', 'test.com', 'demo.com']
+    with app.app_context():  # Ensure we are within the application context
+
+        for i in range(5):  # Creating 5 fake users
+            user = Users(
+                first_name=random.choice(fake_names),
+                last_name=random.choice(fake_names),
+                email=f'{i}@{random.choice(fake_domains)}',
+                password='1',
+                age=random.randint(18, 65),
+                weight=random.uniform(50.0, 100.0),
+                height=random.uniform(150.0, 200.0),
+                user_type=random.choice(['Admin', 'Trainee']),
+                about_me='Just a fun user.',
+                program='Sample Program'
+            )
+            try:
+                db.session.add(user)
+                db.session.commit()
+            except SQLAlchemyError as e:
+                print(f"Error adding user {i}: {e}")
+                db.session.rollback()
+
+    print("Fake data loaded!")
+
+
 if __name__ == "__main__":
     # # Print all files in Templates folder
     # templates_dir = os.path.join(os.getcwd(), 'Templates')  # Get absolute path
     # for filename in os.listdir(templates_dir):
     #     print(filename)
+    # create_users_table()
+    # load_fake_data()
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)
