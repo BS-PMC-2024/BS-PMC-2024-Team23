@@ -3,4 +3,4 @@ flask_sqlalchemy
 flask_migrate
 OpenAI
 psycopg2-binary
-dotenv
+python-dotenv
