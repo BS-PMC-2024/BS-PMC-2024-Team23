@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/LoginPage.css') }}">
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+     <style>
+        select {
+            color: #6c757d; /* Color for placeholder text */
+        }
+        select option[disabled] {
+            color: #6c757d; /* Color for placeholder text */
+            font-style: italic; /* Italic style for placeholder */
+        }
+    </style>
 </head>
 <body>
  <!--Flash messages block-->
@@ -28,14 +37,14 @@
     <div class="login-reg-panel">
         <div class="login-info-box">
             <h2>Have an account?</h2>
-            <p>Just login, bro</p>
+            <p>Just login</p>
             <label id="label-register" for="log-reg-show">Login</label>
             <input type="radio" name="active-log-panel" id="log-reg-show" checked="checked">
         </div>
 
         <div class="register-info-box">
             <h2>Don't have an account?</h2>
-            <p>What are you waiting for?, register bro!</p>
+            <p>What are you waiting for?, register!</p>
             <label id="label-login" for="log-login-show">Register</label>
             <input type="radio" name="active-log-panel" id="log-login-show">
         </div>
@@ -63,6 +72,11 @@
     <input type="password" placeholder="Password" name="password" required>
     <input type="password" placeholder="Confirm Password" name="confirm_password" required>
     <input type="number" placeholder="Age" name="age" required>
+    <select name="gender" required>
+        <option value="" disabled selected>Select Gender</option>
+        <option value="MALE">Male</option>
+        <option value="FEMALE">Female</option>
+    </select>
     <input type="number" placeholder="Weight (kg)" name="weight" required>
     <input type="number" placeholder="Height (cm)" name="height" required>
     <input type="submit" value="Register">
