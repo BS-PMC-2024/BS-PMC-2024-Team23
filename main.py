@@ -5,11 +5,11 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
-
+import secrets
 from openAIManager import call_openAI
 
 app = Flask(__name__)
-app.secret_key = "hello"
+app.config['SECRET_KEY'] = secrets.token_hex(32)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://myuser:mypassword@localhost:5432/mydatabase"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -83,7 +83,7 @@ def home():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
-        session.permanent = True
+        session.permanent = False
         email = request.form["email"]
         password = request.form["password"]
         found_user = Users.query.filter_by(email=email).first()
@@ -297,6 +297,7 @@ def edit_user():
         return redirect(url_for("login"))
 
 
+# can be deleted
 @app.route("/user")
 def user_home():
     if "user" in session:
