@@ -1,20 +1,23 @@
 import random
-from flask import Flask
-from flask import redirect, url_for, render_template, request, session, flash, jsonify
+
+from flask import Flask, redirect, url_for, render_template, request, session, flash, jsonify
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
+
 from openAIManager import call_openAI
 
 app = Flask(__name__)
 app.secret_key = "hello"
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://myuser:mypassword@localhost:5432/mydatabase"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
+# Model for Users
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(100))
@@ -25,14 +28,15 @@ class Users(db.Model):
     age = db.Column(db.Integer)
     weight = db.Column(db.Float)
     height = db.Column(db.Float)
-    user_type = db.Column(db.String(50))  # שדה סוג המשתמש החדש
-    about_me = db.Column(db.Text, nullable=True)  # עמודה חדשה שתשמור את הטקסט על המאמן
+    user_type = db.Column(db.String(50))
+    fitness_goal = db.Column(db.String(30))
+    about_me = db.Column(db.Text, nullable=True)
     program = db.Column(db.Text, nullable=True)
     fitness_level = db.Column(db.String(50))
     training_frequency = db.Column(db.Integer)
 
-    def __init__(self, user_type, first_name, last_name, email, password, age, weight, height, about_me, program,
-                 gender, fitness_level, training_frequency):
+    def __init__(self, user_type, first_name, last_name, email, password, age, weight, height, about_me,
+                 program, gender, fitness_level, training_frequency, fitness_goal):
         self.user_type = user_type
         self.first_name = first_name
         self.last_name = last_name
@@ -46,11 +50,13 @@ class Users(db.Model):
         self.gender = gender
         self.fitness_level = fitness_level
         self.training_frequency = training_frequency
+        self.fitness_goal = fitness_goal
 
     def check_password(self, password):
         return self.password == password
 
 
+# Model for Topics
 class Topics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -61,9 +67,9 @@ class Topics(db.Model):
         self.description = description
 
 
+# Inject current user into all templates
 @app.context_processor
 def inject_user():
-    """הפונקציה הזאת מוודאת שהמשתמש הנוכחי יועבר לכל תבנית."""
     user_email = session.get("email")
     user = Users.query.filter_by(email=user_email).first() if user_email else None
     return dict(current_user=user)
@@ -99,11 +105,12 @@ def login():
     else:
         if "user" in session:
             flash("Already logged in.", "info")
-            if session.get("user_type") == "Coach":
+            user_type = session.get("user_type")
+            if user_type == "Coach":
                 return redirect(url_for("coach"))
-            elif session.get("user_type") == "Trainee":
+            elif user_type == "Trainee":
                 return redirect(url_for("user"))
-            elif session.get("user_type") == "Admin":
+            elif user_type == "Admin":
                 return redirect(url_for("admin"))
         return render_template("LoginPage.html")
 
@@ -126,34 +133,45 @@ def admin():
         total_coaches = Users.query.filter_by(user_type="Coach").count()
         total_trainees = Users.query.filter_by(user_type="Trainee").count()
 
-        return render_template("admin.html", values=users, total_users=total_users, total_coaches=total_coaches,
-                               total_trainees=total_trainees)
+        return render_template("admin.html", values=users, total_users=total_users,
+                               total_coaches=total_coaches, total_trainees=total_trainees)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
 
 
-@app.route("/user", methods=["POST", "GET"])
+@app.route("/user", methods=["GET"])
 def user():
     if "user" in session:
         email = session["email"]
+        topics = Topics.query.all()
         user = Users.query.filter_by(email=email).first()
-        topics = Topics.query.all()  # לקבל את כל הנושאים
+        return render_template("user.html", training_frequency=user.training_frequency, goal=user.fitness_goal,
+                               fitness_level=user.fitness_level, email=email, topics=topics)
+    else:
+        return redirect(url_for("login"))
 
-        if request.method == "POST":
-            goal = request.form["goal"]
-            fitness_level = request.form["fitness_level"]
-            training_frequency = request.form["training_frequency"]
 
+@app.route("/user/save", methods=["POST"])
+def save_user_data():
+    if "user" in session:
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        topics = Topics.query.all()
+
+        goal = request.form["goal"]
+        fitness_level = request.form["fitness_level"]
+        training_frequency = request.form["training_frequency"]
+
+        if (user.fitness_goal != goal or
+                user.fitness_level != fitness_level or
+                user.training_frequency != training_frequency):
             user.fitness_goal = goal
             user.fitness_level = fitness_level
             user.training_frequency = training_frequency
             db.session.commit()
             flash("Information updated successfully!", "success")
-            return redirect(url_for("create_program"))
-
-        # הצגת מידע אישי ודפי נושאים
-        return render_template("user.html", email=email, topics=topics)
+        return redirect(url_for("create_program"))
     else:
         return redirect(url_for("login"))
 
@@ -177,12 +195,9 @@ def view():
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
     if request.method == "POST":
-        # Handle form submission
         user_feedback = request.form.get("feedback")
-        # Here you could save the feedback to a database or send an email to admins
-        # For demonstration, we'll just print it to the console
         print(f"Feedback received: {user_feedback}")
-        return redirect(url_for("user"))  # Redirect to home or another page after submission
+        return redirect(url_for("user"))
     return render_template("feedback.html")
 
 
@@ -218,12 +233,12 @@ def register():
             return redirect(url_for("register"))
 
         new_user = Users(user_type, first_name, last_name, email, password, age, weight, height, about_me='',
-                         program='no prog yet', gender=gender, fitness_level=None, training_frequency=None)
+                         program='no prog yet', gender=gender, fitness_level=fitness_level,
+                         training_frequency=training_frequency, fitness_goal=None)
         db.session.add(new_user)
         db.session.commit()
         flash("Registration successful!", "success")
 
-        # Redirect based on user type
         if user_type == "Coach":
             return redirect(url_for("coach"))
         elif user_type == "Trainee":
@@ -240,7 +255,7 @@ def coach():
     if "user" in session and session.get("user_type") == "Coach":
         email = session["email"]
         user = Users.query.filter_by(email=email).first()
-        topics = Topics.query.all()  # לקבל את כל הנושאים
+        topics = Topics.query.all()
 
         if request.method == "POST":
             user.about_me = request.form["about_text"]
@@ -270,6 +285,7 @@ def edit_user():
             user.height = request.form["height"]
             user.training_frequency = request.form.get("training_frequency", user.training_frequency)
             user.fitness_level = request.form.get("fitness_level", user.fitness_level)
+            user.fitness_goal = request.form.get("fitness_goal", user.fitness_goal)
 
             db.session.commit()
             flash("User details updated successfully!", "success")
@@ -302,13 +318,16 @@ def home_redirect():
         user_email = session["email"]
         found_user = Users.query.filter_by(email=user_email).first()
 
-        if found_user.user_type == "Coach":
-            return redirect(url_for("coach"))
-        elif found_user.user_type == "Trainee":
-            return redirect(url_for("user"))
-        else:
-            flash("Unknown user type", "danger")
-            return redirect(url_for("login"))
+        if found_user:
+            if found_user.user_type == "Coach":
+                return redirect(url_for("coach"))
+            elif found_user.user_type == "Trainee":
+                return redirect(url_for("user"))
+            elif found_user.user_type == "Admin":
+                return redirect(url_for("admin"))
+            else:
+                flash("Unknown user type", "danger")
+                return redirect(url_for("login"))
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
@@ -345,7 +364,7 @@ def edit_user_admin():
             user_id = request.form.get("user_id")
             selected_user = Users.query.get(user_id)
 
-            if "first_name" in request.form:
+            if selected_user:
                 selected_user.first_name = request.form["first_name"]
                 selected_user.last_name = request.form["last_name"]
                 selected_user.email = request.form["email"]
@@ -365,27 +384,38 @@ def edit_user_admin():
         return redirect(url_for("login"))
 
 
+@app.route("/create_program", methods=["GET"])
+def render_create_program():
+    if "user" in session:
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        return render_template("create_program.html", program=user.program)
+
+
 @app.route("/create_program", methods=["POST"])
 def create_program():
     if "user" in session:
         email = session["email"]
         user = Users.query.filter_by(email=email).first()
         name = f"{user.first_name} {user.last_name}"
-        gender = user.gender
-        fitness_level = user.fitness_level
-        training_frequency = user.training_frequency
 
-        # Call the function with collected data
         try:
-            print("calling openAI api...")
-            response = call_openAI(name, user.age, gender, user.weight, user.height, user.about_me, training_frequency, fitness_level)
-            print("response received")
-            user.program = response
-            db.session.commit()
-            return jsonify({"program": response}), 201
+            print("calling OpenAI API...")
+            response = call_openAI(name, user.age, user.gender, user.weight, user.height,
+                                   user.fitness_goal, user.training_frequency, user.fitness_level)
+            print(f"Response received from OpenAI: {response}")
+
+            if response:
+                user.program = response
+                db.session.commit()
+                return jsonify({"program": response}), 201
+            else:
+                return jsonify({"error": "No program data received"}), 500
         except Exception as e:
+            print(f"Error: {e}")
             return jsonify({"error": str(e)}), 500
-    return jsonify({"error": str("no user in session")}), 500
+    else:
+        return jsonify({"error": "No user in session"}), 403
 
 
 @app.route("/manage_topics", methods=["GET", "POST"])
@@ -441,9 +471,9 @@ def load_fake_data():
     fake_names = ['John', 'Jane', 'Alice', 'Bob', 'Charlie']
     fake_domains = ['gmail.com']
     genders = ['MALE', 'FEMALE']
-    with app.app_context():  # Ensure we are within the application context
-
-        for i in range(5):  # Creating 5 fake users
+    fake_goals = ['Weight Loss', 'Muscle Gain', 'Maintain weight']
+    with app.app_context():
+        for i in range(5):
             user = Users(
                 first_name=random.choice(fake_names),
                 last_name=random.choice(fake_names),
@@ -457,7 +487,8 @@ def load_fake_data():
                 about_me='Just a fun user.',
                 program='Sample Program',
                 fitness_level=random.choice(['Beginner', 'Intermediate', 'Advanced']),
-                training_frequency=random.randint(1, 7)
+                training_frequency=random.randint(1, 7),
+                fitness_goal=random.choice(fake_goals)
             )
             try:
                 db.session.add(user)
@@ -470,12 +501,8 @@ def load_fake_data():
 
 
 if __name__ == "__main__":
-    # # Print all files in Templates folder
-    # templates_dir = os.path.join(os.getcwd(), 'Templates')  # Get absolute path
-    # for filename in os.listdir(templates_dir):
-    #     print(filename)
-    create_users_table()
-    load_fake_data()
+    # create_users_table()
+    # load_fake_data()
     with app.app_context():
         db.create_all()
     app.run(debug=False, host='0.0.0.0', port=5000)

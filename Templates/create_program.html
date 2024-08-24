@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Program</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5 text-center">
+    <h2>Create Your Personalized Program</h2>
+    <button id="createProgramBtn" class="btn btn-success mt-3">Create Program</button>
+</div>
+
+<!-- Container for displaying API response -->
+<div class="container mt-5">
+    <h2 class="text-center">Program</h2>
+    <div id="apiResponse" class="alert alert-info" role="alert">
+        <div id="programContent">
+            {% if program %}
+                {% set program_lines = program.split('\n') %}
+                {% for line in program_lines %}
+                    {% if line.startswith('Day') %}
+                        <h3>{{ line }}</h3>
+                    {% else %}
+                        <p>{{ line }}</p>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <p>No program data available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap and JQuery scripts -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    document.getElementById("createProgramBtn").addEventListener("click", async function() {
+        const responseContainer = document.getElementById('programContent');
+        responseContainer.innerHTML = '<p>Loading...</p>';
+        try {
+            const response = await fetch("/create_program", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                                     })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Program data:', data.program);
+
+            responseContainer.innerHTML = ''; // Clear previous content
+
+            if (data.program) {
+                const programLines = data.program.split('\n');
+                programLines.forEach(line => {
+                    const paragraph = document.createElement('p');
+                    paragraph.textContent = line;
+                    responseContainer.appendChild(paragraph);
+                });
+            } else {
+                responseContainer.innerHTML = '<p>No program data available.</p>';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            responseContainer.innerHTML = `<p class="text-danger">An error occurred: ${error.message}</p>`;
+        }
+    });
+</script>
+</body>
+</html>

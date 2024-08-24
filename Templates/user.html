@@ -2,7 +2,6 @@
 {% block title %}Welcome to Your Personal Trainer{% endblock %}
 
 {% block content %}
-
 <div class="background-image">
     <div class="container mt-5">
         <div class="welcome-message">
@@ -14,29 +13,39 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="text-center">What is your goal?</h2>
-                        <form action="/user" method="POST">
+                        <form action="/user/save" method="POST">
                             <div class="form-group">
                                 <label for="goal">Select your goal</label>
                                 <select name="goal" id="goal" class="form-control">
-                                    <option value="lose_weight">To lose weight</option>
-                                    <option value="gain_weight">To gain weight</option>
-                                    <option value="maintain_weight">To maintain weight</option>
+                                    <option value="lose_weight" {% if goal==
+                                    'lose_weight' %}selected{% endif %}>Weight Loss</option>
+                                    <option value="gain_weight" {% if goal==
+                                    'gain_weight' %}selected{% endif %}>Muscle Gain</option>
+                                    <option value="maintain_weight" {% if goal==
+                                    'maintain_weight' %}selected{% endif %}>Maintain weight</option>
                                 </select>
                             </div>
+
                             <div class="form-group">
                                 <label for="fitness_level">Select your fitness level</label>
                                 <select name="fitness_level" id="fitness_level" class="form-control">
-                                    <option value="beginner">Beginner</option>
-                                    <option value="intermediate">Intermediate</option>
-                                    <option value="advanced">Advanced</option>
+                                    <option value="beginner" {% if fitness_level==
+                                    'beginner' %}selected{% endif %}>Beginner</option>
+                                    <option value="intermediate" {% if fitness_level==
+                                    'intermediate' %}selected{% endif %}>Intermediate</option>
+                                    <option value="advanced" {% if fitness_level==
+                                    'advanced' %}selected{% endif %}>Advanced</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="training_frequency">How many times per week are you willing to train?</label>
-                                <input type="number" class="form-control" id="training_frequency" name="training_frequency" placeholder="Number of times per week" required>
+                                <label for="training_frequency">How many times per week are you willing to
+                                    train?</label>
+                                <input type="number" name="training_frequency" id="training_frequency" min="1" max="7"
+                                       value="{{ training_frequency }}" required>
                             </div>
+
                             <div class="form-group text-center mt-3">
-                                <input type="submit" class="btn btn-primary" value="Submit">
+                                <input type="submit" class="btn btn-primary" value="Save Goals">
                             </div>
                         </form>
                     </div>
@@ -55,74 +64,9 @@
                 {% endfor %}
             </ul>
         </div>
-        <!-- Button to call create_program API -->
-        <div class="container mt-5 text-center">
-            <button id="createProgramBtn" class="btn btn-success">Create Program</button>
-        </div>
-        <!-- Container for displaying API response -->
-        <div class="container mt-5">
-            <h2 class="text-center">Program</h2>
-            <div id="apiResponse" class="alert alert-info" role="alert">
-                <p>{{program}}</p>
-            </div>
-        </div>
+
     </div>
 </div>
 
-<script>
-document.getElementById('createProgramBtn').addEventListener('click', async function() {
-    try {
-        const response = await fetch('/create_program', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // Add any necessary headers here
-            },
-            body: JSON.stringify({})
-        });
-
-        const data = await response.json();
-        console.log('Success:', data);
-
-        // Display the response in the designated container
-        const responseContainer = document.getElementById('apiResponse');
-        responseContainer.innerHTML = ''; // Clear previous content
-
-        if (data.program) {
-            const programLines = data.program.split('\n');
-            let currentDay = null;
-            let dayContainer = null;
-
-            programLines.forEach(line => {
-                line = line.trim();
-                if (line.startsWith('Day')) {
-                    if (dayContainer) {
-                        responseContainer.appendChild(dayContainer);
-                    }
-                    currentDay = line;
-                    dayContainer = document.createElement('div');
-                    dayContainer.className = 'mb-4';
-                    const dayTitle = document.createElement('h3');
-                    dayTitle.textContent = currentDay;
-                    dayContainer.appendChild(dayTitle);
-                } else if (line && dayContainer) {
-                    const exerciseItem = document.createElement('p');
-                    exerciseItem.textContent = line;
-                    dayContainer.appendChild(exerciseItem);
-                }
-            });
-
-            if (dayContainer) {
-                responseContainer.appendChild(dayContainer);
-            }
-        } else {
-            responseContainer.innerHTML = '<p>No program data available.</p>';
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('apiResponse').innerHTML = '<p class="text-danger">An error occurred: ' + error + '</p>';
-    }
-});
-</script>
 
 {% endblock %}
