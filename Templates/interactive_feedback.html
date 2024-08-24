@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Feedback</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center">Your Progress and Feedback</h2>
+
+    <div class="row mt-4">
+        <!-- Progress Chart -->
+        <div class="col-md-6">
+            <h4>Progress Chart</h4>
+            <canvas id="progressChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Update Your Goals -->
+        <div class="col-md-6">
+            <h4>Update Your Progress</h4>
+            <form action="{{ url_for('add_progress') }}" method="POST">
+                <div class="form-group">
+                    <label for="week_number">Week Number:</label>
+                    <input type="number" class="form-control" id="week_number" name="week_number" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight:</label>
+                    <input type="number" class="form-control" id="weight" name="weight" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label for="workout_count">Workout Count:</label>
+                    <input type="number" class="form-control" id="workout_count" name="workout_count" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Progress</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Include your JavaScript for interactive elements -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Example of updating the progress chart with dynamic data
+    var ctx = document.getElementById('progressChart').getContext('2d');
+    var progressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ weeks | tojson }},
+            datasets: [{
+                label: 'Weight Progress',
+                data: {{ weights | tojson }},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }, {
+                label: 'Workout Count',
+                data: {{ workout_counts | tojson }},
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Example of handling the update button (for training frequency)
+    document.getElementById("updateFrequencyBtn").addEventListener("click", function() {
+        const trainingFrequency = document.getElementById("trainingFrequency").value;
+        // Send AJAX request to update training frequency
+        fetch('/update_training_frequency', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ trainingFrequency })
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                alert("Training frequency updated!");
+            }
+        });
+    });
+</script>
+</body>
+</html>

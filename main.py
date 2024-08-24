@@ -20,10 +20,10 @@ migrate = Migrate(app, db)
 # Model for Users
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(100))
-    last_name = db.Column(db.String(100))
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100))
+    first_name = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
+    email = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(50))
     gender = db.Column(db.String(10))
     age = db.Column(db.Integer)
     weight = db.Column(db.Float)
@@ -34,6 +34,8 @@ class Users(db.Model):
     program = db.Column(db.Text, nullable=True)
     fitness_level = db.Column(db.String(50))
     training_frequency = db.Column(db.Integer)
+
+    progress = db.relationship('UserProgress', order_by='UserProgress.week_number', back_populates='user')
 
     def __init__(self, user_type, first_name, last_name, email, password, age, weight, height, about_me,
                  program, gender, fitness_level, training_frequency, fitness_goal):
@@ -54,6 +56,19 @@ class Users(db.Model):
 
     def check_password(self, password):
         return self.password == password
+
+
+class UserProgress(db.Model):
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True, nullable=False)
+    week_number = db.Column(db.Integer, primary_key=True, nullable=False)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    fitness_goal = db.Column(db.String(30), nullable=False)
+    training_frequency = db.Column(db.Integer, nullable=False)
+    weight = db.Column(db.Float, nullable=False)
+    workout_count = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship('Users', back_populates='progress')
 
 
 # Model for Topics
@@ -89,10 +104,16 @@ def login():
         found_user = Users.query.filter_by(email=email).first()
 
         if found_user and found_user.check_password(password):
+            # Store user information in session
             session["user"] = found_user.first_name
             session["email"] = found_user.email
             session["user_type"] = found_user.user_type
 
+            # Check if the user has already filled in their goals
+            if found_user.fitness_goal and found_user.fitness_level and found_user.training_frequency:
+                return redirect(url_for("interactive_feedback"))
+
+            # Redirect based on user type
             if found_user.user_type == "Coach":
                 return redirect(url_for("coach"))
             elif found_user.user_type == "Trainee":
@@ -102,16 +123,28 @@ def login():
         else:
             flash("User not found or incorrect password. Please register.", "danger")
             return redirect(url_for("home"))
+
+    # If request method is GET and user is already logged in
     else:
         if "user" in session:
             flash("Already logged in.", "info")
-            user_type = session.get("user_type")
-            if user_type == "Coach":
-                return redirect(url_for("coach"))
-            elif user_type == "Trainee":
-                return redirect(url_for("user"))
-            elif user_type == "Admin":
-                return redirect(url_for("admin"))
+            email = session.get("email")
+            found_user = Users.query.filter_by(email=email).first()
+
+            if found_user:
+                # Check if the user has already filled in their goals
+                if found_user.fitness_goal and found_user.fitness_level and found_user.training_frequency:
+                    return redirect(url_for("interactive_feedback"))
+
+                # Redirect based on user type
+                if found_user.user_type == "Coach":
+                    return redirect(url_for("coach"))
+                elif found_user.user_type == "Trainee":
+                    return redirect(url_for("user"))
+                elif found_user.user_type == "Admin":
+                    return redirect(url_for("admin"))
+
+        # If not logged in, show the login page
         return render_template("LoginPage.html")
 
 
@@ -172,6 +205,25 @@ def save_user_data():
             db.session.commit()
             flash("Information updated successfully!", "success")
         return redirect(url_for("create_program"))
+    else:
+        return redirect(url_for("login"))
+
+
+@app.route("/interactive_feedback", methods=["GET"])
+def interactive_feedback():
+    if "user" in session:
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+
+        # Collect user progress data
+        progress_entries = UserProgress.query.filter_by(user_id=user.id).order_by(UserProgress.week_number).all()
+        weeks = [entry.week_number for entry in progress_entries] if progress_entries else []
+        weights = [entry.weight for entry in progress_entries] if progress_entries else []
+        workout_counts = [entry.workout_count for entry in progress_entries] if progress_entries else []
+
+        # Pass any necessary data to the template
+        return render_template("interactive_feedback.html", user=user, weeks=weeks, weights=weights,
+                               workout_counts=workout_counts)
     else:
         return redirect(url_for("login"))
 
@@ -390,7 +442,11 @@ def render_create_program():
     if "user" in session:
         email = session["email"]
         user = Users.query.filter_by(email=email).first()
-        return render_template("create_program.html", program=user.program)
+        program_exists = bool(user.program)
+
+        return render_template("create_program.html", program=user.program, program_exists=program_exists)
+    else:
+        return redirect(url_for("login"))
 
 
 @app.route("/create_program", methods=["POST"])
@@ -456,6 +512,64 @@ def manage_topics():
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
+
+
+@app.route("/add_progress", methods=["POST"])
+def add_progress():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    email = session["email"]
+    user = Users.query.filter_by(email=email).first()
+
+    # Get data from the form
+    week_number = request.form.get("week_number")
+    weight = request.form.get("weight")
+    workout_count = request.form.get("workout_count")
+
+    # Validate form data
+    if not all([week_number, weight, workout_count]):
+        flash("Invalid input. Please fill out all fields.", "danger")
+        return redirect(url_for("interactive_feedback"))
+
+    existing_progress = UserProgress.query.filter_by(user_id=user.id, week_number=week_number).first()
+
+    if existing_progress:
+        # Update existing progress entry
+        update_progress(existing_progress, weight, workout_count, user)
+        flash("Progress updated successfully!", "success")
+    else:
+        # Create a new progress entry
+        create_new_progress(user, week_number, weight, workout_count)
+        flash("Progress added successfully!", "success")
+
+    db.session.commit()
+    return redirect(url_for("interactive_feedback"))
+
+
+def update_progress(progress, weight, workout_count, user) -> None:
+    """Updates an existing progress entry with new data."""
+    progress.weight = float(weight)
+    progress.workout_count = int(workout_count)
+    progress.first_name = user.first_name
+    progress.last_name = user.last_name
+    progress.fitness_goal = user.fitness_goal
+    progress.training_frequency = user.training_frequency
+
+
+def create_new_progress(user, week_number, weight, workout_count) -> None:
+    """Creates a new progress entry."""
+    new_progress = UserProgress(
+        user_id=user.id,
+        week_number=int(week_number),
+        first_name=user.first_name,
+        last_name=user.last_name,
+        fitness_goal=user.fitness_goal,
+        training_frequency=user.training_frequency,
+        weight=float(weight),
+        workout_count=int(workout_count)
+    )
+    db.session.add(new_progress)
 
 
 def create_users_table():
