@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI
+from openAIManager import call_openAI, accpected_result
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(32)
@@ -174,6 +174,36 @@ def save_user_data():
         return redirect(url_for("create_program"))
     else:
         return redirect(url_for("login"))
+
+
+@app.route("/user/result", methods=["POST"])
+def user_accpected_result():
+    return render_template("accpected_result.html")
+
+# @app.route("/accpected/result")
+# def render_accpected_result():
+
+
+@app.route("/fetch_expected_result", methods=["POST"])
+def fetch_expected_result():
+    if "user" in session:
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        if user and user.program:
+            try:
+                time_frame = request.json.get('time_frame', '1 month')  # Default to 1 month if not specified
+                expected_result = accpected_result(user.program, time_frame)
+                return jsonify({"expected_result": expected_result}), 200
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+        else:
+            return jsonify({"error": "No program found for the user"}), 404
+    else:
+        return jsonify({"error": "User not authenticated"}), 401
+
+
+
+
 
 
 @app.route("/logout")
@@ -502,8 +532,8 @@ def load_fake_data():
 
 
 if __name__ == "__main__":
-    # create_users_table()
-    # load_fake_data()
+    create_users_table()
+    load_fake_data()
     with app.app_context():
         db.create_all()
     app.run(debug=False, host='0.0.0.0', port=5000)

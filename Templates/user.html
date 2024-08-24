@@ -2,56 +2,56 @@
 {% block title %}Welcome to Your Personal Trainer{% endblock %}
 
 {% block content %}
-<div class="background-image">
+<div class="background-image" style="padding: 20px; background-color: #f4f4f4;">
     <div class="container mt-5">
-        <div class="welcome-message">
+        <div class="welcome-message text-center">
             <h1>Welcome to Your Personal Trainer!</h1>
-            <h4>{{email}}</h4>
+            <h4>{{ email }}</h4>
         </div>
-        <div class="row">
-            <div class="col-md-6 offset-md-3">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
                 <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="text-center">Set Your Goals</h2>
+                    </div>
                     <div class="card-body">
-                        <h2 class="text-center">What is your goal?</h2>
                         <form action="/user/save" method="POST">
                             <div class="form-group">
-                                <label for="goal">Select your goal</label>
+                                <label for="goal">Select your goal:</label>
                                 <select name="goal" id="goal" class="form-control">
-                                    <option value="lose_weight" {% if goal==
-                                    'lose_weight' %}selected{% endif %}>Weight Loss</option>
-                                    <option value="gain_weight" {% if goal==
-                                    'gain_weight' %}selected{% endif %}>Muscle Gain</option>
-                                    <option value="maintain_weight" {% if goal==
-                                    'maintain_weight' %}selected{% endif %}>Maintain weight</option>
+                                    <option value="lose_weight" {% if goal == 'lose_weight' %}selected{% endif %}>Weight Loss</option>
+                                    <option value="gain_weight" {% if goal == 'gain_weight' %}selected{% endif %}>Muscle Gain</option>
+                                    <option value="maintain_weight" {% if goal == 'maintain_weight' %}selected{% endif %}>Maintain Weight</option>
                                 </select>
                             </div>
-
                             <div class="form-group">
-                                <label for="fitness_level">Select your fitness level</label>
+                                <label for="fitness_level">Select your fitness level:</label>
                                 <select name="fitness_level" id="fitness_level" class="form-control">
-                                    <option value="beginner" {% if fitness_level==
-                                    'beginner' %}selected{% endif %}>Beginner</option>
-                                    <option value="intermediate" {% if fitness_level==
-                                    'intermediate' %}selected{% endif %}>Intermediate</option>
-                                    <option value="advanced" {% if fitness_level==
-                                    'advanced' %}selected{% endif %}>Advanced</option>
+                                    <option value="beginner" {% if fitness_level == 'beginner' %}selected{% endif %}>Beginner</option>
+                                    <option value="intermediate" {% if fitness_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                                    <option value="advanced" {% if fitness_level == 'advanced' %}selected{% endif %}>Advanced</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="training_frequency">How many times per week are you willing to
-                                    train?</label>
-                                <input type="number" name="training_frequency" id="training_frequency" min="1" max="7"
-                                       value="{{ training_frequency }}" required>
+                                <label for="training_frequency">Training frequency (times per week):</label>
+                                <input type="number" name="training_frequency" id="training_frequency" class="form-control" min="1" max="7" value="{{ training_frequency }}" required>
                             </div>
-
-                            <div class="form-group text-center mt-3">
-                                <input type="submit" class="btn btn-primary" value="Save Goals">
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success">Save Goals</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+        <form action="/user/result" method="POST">
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-4 text-center">
+            <!-- Removed the inline onclick handler to ensure form submission -->
+            <button type="submit" class="btn btn-info">See Accepted Result</button>
+        </div>
+    </div>
+        </form>
         <!-- Display Topics -->
         <div class="container mt-5">
             <h2 class="text-center">Topics</h2>
@@ -64,9 +64,6 @@
                 {% endfor %}
             </ul>
         </div>
-
     </div>
 </div>
-
-
 {% endblock %}
