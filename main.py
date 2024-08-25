@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result
+from openAIManager import call_openAI, accpected_result,ask_openai
 from datetime import datetime
 
 
