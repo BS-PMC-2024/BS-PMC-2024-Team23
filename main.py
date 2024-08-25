@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI
+from openAIManager import call_openAI, accpected_result
 from datetime import datetime
 
 
@@ -278,10 +278,11 @@ def fetch_expected_result():
     if "user" in session:
         email = session["email"]
         user = Users.query.filter_by(email=email).first()
+        name = f"{user.first_name} {user.last_name}"
         if user and user.program:
             try:
-                time_frame = request.json.get('time_frame', '1 month')  # Default to 1 month if not specified
-                expected_result = accpected_result(user.program, time_frame)
+                time_frame = request.json.get('time_frame', '1 month')
+                expected_result = accpected_result(user.program, time_frame,user.weight,user.height,name,user.gender)
                 return jsonify({"expected_result": expected_result}), 200
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
@@ -289,6 +290,11 @@ def fetch_expected_result():
             return jsonify({"error": "No program found for the user"}), 404
     else:
         return jsonify({"error": "User not authenticated"}), 401
+
+
+
+
+
 
 
 
