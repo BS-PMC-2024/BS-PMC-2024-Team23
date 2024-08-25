@@ -50,8 +50,8 @@
                 <div class="form-group">
                     <label for="user_type">User Type</label>
                     <select class="form-control" id="user_type" name="user_type" required>
-                        <option value="enthusiast" {% if user.user_type == 'enthusiast' %}selected{% endif %}>Enthusiast</option>
-                        <option value="fitness_coach" {% if user.user_type == 'fitness_coach' %}selected{% endif %}>Fitness Coach</option>
+                        <option value="trainee" {% if user.user_type=='trainee' %}selected{% endif %}>Trainee</option>
+                        <option value="fitness_coach" {% if user.user_type=='fitness_coach' %}selected{% endif %}>Fitness Coach</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Update</button>
