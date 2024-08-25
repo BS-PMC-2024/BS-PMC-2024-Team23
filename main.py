@@ -99,54 +99,62 @@ def home():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
-        session.permanent = False
-        email = request.form["email"]
-        password = request.form["password"]
+        return handle_login_post()
+    else:
+        return handle_login_get()
+
+
+def handle_login_post():
+    session.permanent = False
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    found_user = Users.query.filter_by(email=email).first()
+
+    if found_user and found_user.check_password(password):
+        set_user_session(found_user)
+
+        if user_goals_complete(found_user):
+            return redirect(url_for("interactive_feedback"))
+
+        return redirect_based_on_user_type(found_user)
+    else:
+        flash("User not found or incorrect password. Please register.", "danger")
+        return redirect(url_for("home"))
+
+
+def handle_login_get():
+    if "user" in session:
+        flash("Already logged in.", "info")
+        email = session.get("email")
         found_user = Users.query.filter_by(email=email).first()
 
-        if found_user and found_user.check_password(password):
-            # Store user information in session
-            session["user"] = found_user.first_name
-            session["email"] = found_user.email
-            session["user_type"] = found_user.user_type
-
-            # Check if the user has already filled in their goals
-            if found_user.fitness_goal and found_user.fitness_level and found_user.training_frequency:
+        if found_user:
+            if user_goals_complete(found_user):
                 return redirect(url_for("interactive_feedback"))
 
-            # Redirect based on user type
-            if found_user.user_type == "Coach":
-                return redirect(url_for("coach"))
-            elif found_user.user_type == "Trainee":
-                return redirect(url_for("user"))
-            elif found_user.user_type == "Admin":
-                return redirect(url_for("admin"))
-        else:
-            flash("User not found or incorrect password. Please register.", "danger")
-            return redirect(url_for("home"))
+            return redirect_based_on_user_type(found_user)
 
-    # If request method is GET and user is already logged in
-    else:
-        if "user" in session:
-            flash("Already logged in.", "info")
-            email = session.get("email")
-            found_user = Users.query.filter_by(email=email).first()
+    return render_template("LoginPage.html")
 
-            if found_user:
-                # Check if the user has already filled in their goals
-                if found_user.fitness_goal and found_user.fitness_level and found_user.training_frequency:
-                    return redirect(url_for("interactive_feedback"))
 
-                # Redirect based on user type
-                if found_user.user_type == "Coach":
-                    return redirect(url_for("coach"))
-                elif found_user.user_type == "Trainee":
-                    return redirect(url_for("user"))
-                elif found_user.user_type == "Admin":
-                    return redirect(url_for("admin"))
+def set_user_session(user):
+    session["user"] = user.first_name
+    session["email"] = user.email
+    session["user_type"] = user.user_type
 
-        # If not logged in, show the login page
-        return render_template("LoginPage.html")
+
+def user_goals_complete(user):
+    return all([user.fitness_goal, user.fitness_level, user.training_frequency, user.user_type != "Admin"])
+
+
+def redirect_based_on_user_type(user):
+    if user.user_type == "Coach":
+        return redirect(url_for("coach"))
+    elif user.user_type == "Trainee":
+        return redirect(url_for("user"))
+    elif user.user_type == "Admin":
+        return redirect(url_for("admin"))
 
 
 @app.route("/admin", methods=["GET"])
@@ -426,8 +434,20 @@ def home_redirect():
 def remove_users():
     if "user" in session and session.get("user_type") == "Admin":
         if request.method == "POST":
-            user_id = request.form["user_id"]
-            user_to_remove = Users.query.get(user_id)
+            user_id = request.form.get("user_id")
+
+            # Ensure user_id is provided and is a valid integer
+            if not user_id:
+                flash("User ID is required.", "danger")
+                return redirect(url_for("remove_users"))
+
+            try:
+                user_id = int(user_id)
+            except ValueError:
+                flash("Invalid User ID. Please enter a valid number.", "danger")
+                return redirect(url_for("remove_users"))
+
+            user_to_remove = db.session.get(Users, user_id)
 
             if user_to_remove:
                 db.session.delete(user_to_remove)
@@ -451,7 +471,15 @@ def edit_user_admin():
 
         if request.method == "POST":
             user_id = request.form.get("user_id")
-            selected_user = Users.query.get(user_id)
+
+            # Check if user_id is valid and not empty
+            if not user_id:
+                flash("No user selected. Please select a valid user.", "danger")
+                return redirect(url_for("edit_user_admin"))
+
+            selected_user = db.session.get(Users, user_id)
+            print(f"User ID: {user_id}")
+            print(f"Selected User: {selected_user}")
 
             if selected_user:
                 selected_user.first_name = request.form["first_name"]
@@ -466,6 +494,8 @@ def edit_user_admin():
                 db.session.commit()
                 flash("User details updated successfully", "success")
                 return redirect(url_for("edit_user_admin"))
+            else:
+                flash("Selected user not found. Please try again.", "danger")
 
         return render_template("edit_user_admin.html", users=users, selected_user=selected_user)
     else:
