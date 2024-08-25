@@ -6,8 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result
-
+from openAIManager import call_openAI, accpected_result, ask_openai
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(32)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://myuser:mypassword@localhost:5432/mydatabase"
@@ -488,6 +487,7 @@ def manage_topics():
         return redirect(url_for("login"))
 
 
+
 def create_users_table():
     with app.app_context():
         inspector = inspect(db.engine)
@@ -497,6 +497,21 @@ def create_users_table():
         else:
             print("Users table already exists!")
 
+@app.route("/ask_openai", methods=["GET", "POST"])
+def ask_openai_view():
+    if "user" in session:
+        if request.method == "POST":
+            prompt = request.form.get('prompt')
+            try:
+                response = ask_openai(prompt)
+                return render_template("ask_openai.html", result=response)
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", "danger")
+                return render_template("ask_openai.html", result=None)
+        return render_template("ask_openai.html")
+    else:
+        flash("You need to be logged in to access this feature.", "danger")
+        return redirect(url_for("login"))
 
 def load_fake_data():
     fake_names = ['John', 'Jane', 'Alice', 'Bob', 'Charlie']
@@ -504,7 +519,7 @@ def load_fake_data():
     genders = ['MALE', 'FEMALE']
     fake_goals = ['Weight Loss', 'Muscle Gain', 'Maintain weight']
     with app.app_context():
-        for i in range(5):
+        for i in range(7):
             user = Users(
                 first_name=random.choice(fake_names),
                 last_name=random.choice(fake_names),
@@ -514,7 +529,7 @@ def load_fake_data():
                 age=random.randint(18, 65),
                 weight=random.uniform(50.0, 100.0),
                 height=random.uniform(150.0, 200.0),
-                user_type=random.choice(['Admin', 'Trainee']),
+                user_type=random.choice(['Admin', 'Trainee', 'Coach']),
                 about_me='Just a fun user.',
                 program='Sample Program',
                 fitness_level=random.choice(['Beginner', 'Intermediate', 'Advanced']),
@@ -536,4 +551,4 @@ if __name__ == "__main__":
     load_fake_data()
     with app.app_context():
         db.create_all()
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
