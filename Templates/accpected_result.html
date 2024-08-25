@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Expected Progress</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5 text-center">
+    <h2>View Your Expected Progress</h2>
+    <select id="timeFrameSelect" class="form-control mb-3">
+        <option value="1 month">1 Month</option>
+        <option value="2 months">2 Months</option>
+        <option value="3 months">3 Months</option>
+    </select>
+    <button id="fetchProgressBtn" class="btn btn-primary">Show Progress</button>
+</div>
+
+<div class="container mt-5">
+    <h2 class="text-center">Expected Progress Report</h2>
+    <div id="apiResponse" class="alert alert-info" role="alert">
+        <div id="progressContent">
+            <p>No progress data available. Click 'Show Progress' to display.</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    document.getElementById("fetchProgressBtn").addEventListener("click", async function() {
+        const timeFrame = document.getElementById('timeFrameSelect').value;
+        const responseContainer = document.getElementById('progressContent');
+        responseContainer.innerHTML = '<p>Loading...</p>';
+        try {
+            const response = await fetch("/fetch_expected_result", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({time_frame: timeFrame})
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            responseContainer.innerHTML = '';
+
+            if (data.expected_result) {
+                const resultLines = data.expected_result.split('\n');
+                resultLines.forEach(line => {
+                    const paragraph = document.createElement('p');
+                    paragraph.textContent = line;
+                    responseContainer.appendChild(paragraph);
+                });
+            } else {
+                responseContainer.innerHTML = '<p>No progress data available.</p>';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            responseContainer.innerHTML = `<p class="text-danger">An error occurred: ${error.message}</p>`;
+        }
+    });
+</script>
+</body>
+</html>
