@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}
+Interactive Feedback
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center display-4 text-gold">Your Progress and Feedback</h2>
+
+    <!-- Average Metrics Section -->
+    <div class="row mt-5 text-center">
+        <div class="col-md-6">
+            <h4 class="font-weight-bold text-white">Average Workout Frequency</h4>
+            <p class="text-muted h3">{{ avg_workout_frequency }}</p>
+        </div>
+        <div class="col-md-6">
+            <h4 class="font-weight-bold text-white">Average Weight Change per Week</h4>
+            <p class="text-muted h3">{{ avg_weight_change }} kg</p>
+        </div>
+    </div>
+
+    <!-- Date Range Filter Form -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <form action="{{ url_for('interactive_feedback') }}" method="POST" class="form-inline justify-content-center">
+                <div class="form-group mb-2">
+                    <label for="start_date" class="text-gold mr-2">Start Date:</label>
+                    <input type="date" class="form-control form-control-lg" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="form-group mx-sm-3 mb-2">
+                    <label for="end_date" class="text-gold mr-2">End Date:</label>
+                    <input type="date" class="form-control form-control-lg" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <button type="submit" class="btn btn-gold btn-lg mb-2">Filter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Progress Chart -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h4 class="text-center text-gold">Progress Chart</h4>
+            <div class="chart-container" style="position: relative; height:40vh; width:80vw;">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Progress Table -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h4 class="text-center text-gold">Progress Details</h4>
+            <table class="table table-dark table-striped table-bordered table-hover">
+                <thead class="thead-gold">
+                    <tr>
+                        <th>Week</th>
+                        <th>Weight (kg)</th>
+                        <th>Workout Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in progress_entries %}
+                    <tr>
+                        <td>{{ entry.week_number }}</td>
+                        <td>{{ entry.weight }}</td>
+                        <td>{{ entry.workout_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Include your JavaScript for interactive elements -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('progressChart').getContext('2d');
+    var progressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ weeks | tojson }},
+            datasets: [{
+                label: 'Weight Progress',
+                data: {{ weights | tojson }},
+                borderColor: 'rgba(255, 215, 0, 1)',  // Gold color
+                backgroundColor: 'rgba(255, 215, 0, 0.2)', // Light gold background
+                borderWidth: 4,
+                pointBackgroundColor: 'rgba(255, 215, 0, 1)',
+                pointBorderColor: 'rgba(255, 255, 255, 1)',
+                pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
+                pointHoverBorderColor: 'rgba(255, 215, 0, 1)',
+                tension: 0.4 // Smooth curves
+            }, {
+                label: 'Workout Count',
+                data: {{ workout_counts | tojson }},
+                borderColor: 'rgba(255, 255, 255, 0.8)',  // White color
+                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Light white background
+                borderWidth: 4,
+                pointBackgroundColor: 'rgba(255, 255, 255, 1)',
+                pointBorderColor: 'rgba(255, 215, 0, 1)',
+                pointHoverBackgroundColor: 'rgba(255, 215, 0, 1)',
+                pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+                tension: 0.4 // Smooth curves
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff',
+                        font: {
+                            size: 16,
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff',
+                        font: {
+                            size: 16,
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff',
+                        font: {
+                            size: 18,
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
