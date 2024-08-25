@@ -1,40 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Feedback</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}
+Interactive Feedback
+{% endblock %}
+
+{% block content %}
 <div class="container mt-5">
-    <h2 class="text-center">Your Progress and Feedback</h2>
+    <h2 class="text-center display-4 text-gold">Your Progress and Feedback</h2>
 
-    <div class="row mt-4">
-        <!-- Progress Chart -->
+    <!-- Average Metrics Section -->
+    <div class="row mt-5 text-center">
         <div class="col-md-6">
-            <h4>Progress Chart</h4>
-            <canvas id="progressChart" width="400" height="200"></canvas>
+            <h4 class="font-weight-bold text-white">Average Workout Frequency</h4>
+            <p class="text-muted h3">{{ avg_workout_frequency }}</p>
         </div>
-
-        <!-- Update Your Goals -->
         <div class="col-md-6">
-            <h4>Update Your Progress</h4>
-            <form action="{{ url_for('add_progress') }}" method="POST">
-                <div class="form-group">
-                    <label for="week_number">Week Number:</label>
-                    <input type="number" class="form-control" id="week_number" name="week_number" min="1" required>
+            <h4 class="font-weight-bold text-white">Average Weight Change per Week</h4>
+            <p class="text-muted h3">{{ avg_weight_change }} kg</p>
+        </div>
+    </div>
+
+    <!-- Date Range Filter Form -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <form action="{{ url_for('interactive_feedback') }}" method="POST" class="form-inline justify-content-center">
+                <div class="form-group mb-2">
+                    <label for="start_date" class="text-gold mr-2">Start Date:</label>
+                    <input type="date" class="form-control form-control-lg" id="start_date" name="start_date" value="{{ start_date }}">
                 </div>
-                <div class="form-group">
-                    <label for="weight">Weight:</label>
-                    <input type="number" class="form-control" id="weight" name="weight" step="0.1" required>
+                <div class="form-group mx-sm-3 mb-2">
+                    <label for="end_date" class="text-gold mr-2">End Date:</label>
+                    <input type="date" class="form-control form-control-lg" id="end_date" name="end_date" value="{{ end_date }}">
                 </div>
-                <div class="form-group">
-                    <label for="workout_count">Workout Count:</label>
-                    <input type="number" class="form-control" id="workout_count" name="workout_count" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Submit Progress</button>
+                <button type="submit" class="btn btn-gold btn-lg mb-2">Filter</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Progress Chart -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h4 class="text-center text-gold">Progress Chart</h4>
+            <div class="chart-container" style="position: relative; height:40vh; width:80vw;">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Progress Table -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h4 class="text-center text-gold">Progress Details</h4>
+            <table class="table table-dark table-striped table-bordered table-hover">
+                <thead class="thead-gold">
+                    <tr>
+                        <th>Week</th>
+                        <th>Weight (kg)</th>
+                        <th>Workout Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in progress_entries %}
+                    <tr>
+                        <td>{{ entry.week_number }}</td>
+                        <td>{{ entry.weight }}</td>
+                        <td>{{ entry.workout_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -43,7 +77,6 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Example of updating the progress chart with dynamic data
     var ctx = document.getElementById('progressChart').getContext('2d');
     var progressChart = new Chart(ctx, {
         type: 'line',
@@ -52,40 +85,64 @@
             datasets: [{
                 label: 'Weight Progress',
                 data: {{ weights | tojson }},
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2
+                borderColor: 'rgba(255, 215, 0, 1)',  // Gold color
+                backgroundColor: 'rgba(255, 215, 0, 0.2)', // Light gold background
+                borderWidth: 4,
+                pointBackgroundColor: 'rgba(255, 215, 0, 1)',
+                pointBorderColor: 'rgba(255, 255, 255, 1)',
+                pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
+                pointHoverBorderColor: 'rgba(255, 215, 0, 1)',
+                tension: 0.4 // Smooth curves
             }, {
                 label: 'Workout Count',
                 data: {{ workout_counts | tojson }},
-                borderColor: 'rgba(153, 102, 255, 1)',
-                borderWidth: 2
+                borderColor: 'rgba(255, 255, 255, 0.8)',  // White color
+                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Light white background
+                borderWidth: 4,
+                pointBackgroundColor: 'rgba(255, 255, 255, 1)',
+                pointBorderColor: 'rgba(255, 215, 0, 1)',
+                pointHoverBackgroundColor: 'rgba(255, 215, 0, 1)',
+                pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+                tension: 0.4 // Smooth curves
             }]
         },
         options: {
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff',
+                        font: {
+                            size: 16,
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff',
+                        font: {
+                            size: 16,
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff',
+                        font: {
+                            size: 18,
+                        }
+                    }
                 }
             }
         }
     });
-
-    // Example of handling the update button (for training frequency)
-    document.getElementById("updateFrequencyBtn").addEventListener("click", function() {
-        const trainingFrequency = document.getElementById("trainingFrequency").value;
-        // Send AJAX request to update training frequency
-        fetch('/update_training_frequency', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ trainingFrequency })
-        }).then(response => response.json()).then(data => {
-            if (data.success) {
-                alert("Training frequency updated!");
-            }
-        });
-    });
 </script>
-</body>
-</html>
+{% endblock %}

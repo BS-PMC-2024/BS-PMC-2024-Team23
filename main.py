@@ -1,5 +1,4 @@
 import random
-
 from flask import Flask, redirect, url_for, render_template, request, session, flash, jsonify
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -7,6 +6,8 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
 from openAIManager import call_openAI
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(32)
@@ -209,23 +210,58 @@ def save_user_data():
         return redirect(url_for("login"))
 
 
-@app.route("/interactive_feedback", methods=["GET"])
+@app.route("/interactive_feedback", methods=["GET", "POST"])
 def interactive_feedback():
-    if "user" in session:
-        email = session["email"]
-        user = Users.query.filter_by(email=email).first()
-
-        # Collect user progress data
-        progress_entries = UserProgress.query.filter_by(user_id=user.id).order_by(UserProgress.week_number).all()
-        weeks = [entry.week_number for entry in progress_entries] if progress_entries else []
-        weights = [entry.weight for entry in progress_entries] if progress_entries else []
-        workout_counts = [entry.workout_count for entry in progress_entries] if progress_entries else []
-
-        # Pass any necessary data to the template
-        return render_template("interactive_feedback.html", user=user, weeks=weeks, weights=weights,
-                               workout_counts=workout_counts)
-    else:
+    if "user" not in session:
         return redirect(url_for("login"))
+
+    # Retrieve the logged-in user's information
+    email = session.get("email")
+    user = Users.query.filter_by(email=email).first()
+
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for("login"))
+
+    # Initialize the date range to filter progress entries
+    start_date = request.form.get("start_date", None)
+    end_date = request.form.get("end_date", None)
+
+    # Query progress entries with optional date filtering
+    query = UserProgress.query.filter_by(user_id=user.id)
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        query = query.filter(UserProgress.date.between(start_date, end_date))
+
+    progress_entries = query.order_by(UserProgress.week_number).all()
+
+    # Calculate average metrics
+    total_weeks = len(progress_entries)
+    total_workouts = sum(entry.workout_count for entry in progress_entries)
+    total_weight_change = (progress_entries[-1].weight - progress_entries[0].weight) if total_weeks > 1 else 0
+
+    avg_workout_frequency = total_workouts / total_weeks if total_weeks > 0 else 0
+    avg_weight_change = total_weight_change / total_weeks if total_weeks > 0 else 0
+
+    # Extract progress data for the chart
+    weeks = [entry.week_number for entry in progress_entries]
+    weights = [entry.weight for entry in progress_entries]
+    workout_counts = [entry.workout_count for entry in progress_entries]
+
+    # Render the template with the necessary data
+    return render_template(
+        "interactive_feedback.html",
+        user=user,
+        weeks=weeks,
+        weights=weights,
+        workout_counts=workout_counts,
+        avg_workout_frequency=avg_workout_frequency,
+        avg_weight_change=avg_weight_change,
+        progress_entries=progress_entries,
+        start_date=start_date.strftime('%Y-%m-%d') if start_date else '',
+        end_date=end_date.strftime('%Y-%m-%d') if end_date else ''
+    )
 
 
 @app.route("/logout")
