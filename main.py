@@ -115,9 +115,6 @@ def handle_login_post():
     if found_user and found_user.check_password(password):
         set_user_session(found_user)
 
-        if user_goals_complete(found_user):
-            return redirect(url_for("interactive_feedback"))
-
         return redirect_based_on_user_type(found_user)
     else:
         flash("User not found or incorrect password. Please register.", "danger")
@@ -383,23 +380,6 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/coach", methods=["GET", "POST"])
-def coach():
-    if "user" in session and session.get("user_type") == "Coach":
-        email = session["email"]
-        user = Users.query.filter_by(email=email).first()
-        topics = Topics.query.all()
-
-        if request.method == "POST":
-            user.about_me = request.form["about_text"]
-            db.session.commit()
-            flash("Your 'About Me' has been updated!", "success")
-            return redirect(url_for("coach"))
-
-        return render_template("coach.html", coach_info=user.about_me, topics=topics)
-    else:
-        flash("You are not logged in", "danger")
-        return redirect(url_for("login"))
 
 
 @app.route("/edit_user", methods=["POST", "GET"])
@@ -498,6 +478,51 @@ def remove_users():
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
+
+
+
+@app.route("/coach", methods=["GET", "POST"])
+def coach():
+    if "user" in session:
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        topics = Topics.query.all()  # קבלת כל הנושאים
+
+        if request.method == "POST":
+            user.about_me = request.form["about_text"]
+            db.session.commit()
+            flash("About Me updated successfully!", "success")
+            return redirect(url_for("coach"))
+
+        try:
+            # הוספת העובדה מה-API
+            fact = get_random_fact_from_openai()
+        except Exception as e:
+            fact = "Unable to fetch fact at this moment."
+
+        return render_template("coach.html", coach_info=user.about_me, topics=topics, fact=fact)
+    else:
+        flash("You are not logged in", "danger")
+        return redirect(url_for("login"))
+
+
+@app.route("/get_fact", methods=["GET"])
+def get_fact():
+    if "user" in session:
+        try:
+            # קריאה ל-AI כדי לקבל עובדה אקראית
+            fact = get_random_fact_from_openai()  # הפונקציה שתקרא ל-OpenAI כדי לקבל את העובדה
+            return jsonify({"fact": fact}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    return jsonify({"error": str("no user in session")}), 500
+
+def get_random_fact_from_openai():
+    # לוגיקה לביצוע קריאה ל-OpenAI ולקבל עובדה אקראית
+    prompt = "Give me a random fitness or well-being fact."
+    response = call_openAI_simple(prompt)  # פונקציה שכבר קיימת אצלך ומבצעת את הקריאה
+    return response
+
 
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])
@@ -734,8 +759,8 @@ def load_fake_data():
 
 
 if __name__ == "__main__":
-    create_users_table()
-    load_fake_data()
+    #create_users_table()
+    #load_fake_data()
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)
