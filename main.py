@@ -78,13 +78,26 @@ class Topics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    clicks = db.Column(db.Integer, default=0)  # עמודה חדשה לספירת לחיצות
 
     def __init__(self, title, description):
         self.title = title
         self.description = description
+        self.clicks = 0  # ברירת מחדל לאפס לחיצות
 
+@app.route("/record_click", methods=["POST"])
+def record_click():
+    data = request.get_json()
+    topic_id = data.get("topic_id")
 
-# Inject current user into all templates
+    if topic_id:
+        topic = Topics.query.get(topic_id)
+        if topic:
+            topic.clicks += 1
+            db.session.commit()
+            return jsonify({"success": True}), 200
+    return jsonify({"success": False}), 400
+
 @app.context_processor
 def inject_user():
     user_email = session.get("email")
@@ -97,6 +110,7 @@ def home():
     return render_template("LoginPage.html")
 
 
+
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
@@ -106,7 +120,7 @@ def login():
 
 
 def handle_login_post():
-    session.permanent = False
+    session.permanent = True  # שמירה על הסשן קבוע כפי שנעשה בפונקציה הישנה
     email = request.form.get("email")
     password = request.form.get("password")
 
@@ -115,7 +129,16 @@ def handle_login_post():
     if found_user and found_user.check_password(password):
         set_user_session(found_user)
 
-        return redirect_based_on_user_type(found_user)
+        # הכוונה למשתמש בהתאם לסוגו
+        if found_user.user_type == "Coach":
+            return redirect(url_for("coach"))
+        elif found_user.user_type == "Trainee":
+            return redirect(url_for("user"))
+        elif found_user.user_type == "Admin":
+            return redirect(url_for("admin"))
+        else:
+            flash("Invalid user type", "danger")
+            return redirect(url_for("home"))
     else:
         flash("User not found or incorrect password. Please register.", "danger")
         return redirect(url_for("home"))
@@ -153,7 +176,9 @@ def redirect_based_on_user_type(user):
         return redirect(url_for("user"))
     elif user.user_type == "Admin":
         return redirect(url_for("admin"))
-
+    else:
+        flash("Invalid user type", "danger")
+        return redirect(url_for("home"))
 
 @app.route("/admin", methods=["GET"])
 def admin():

@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css?family=Mukta');
+body {
+    font-family: 'Mukta', sans-serif;
+    height: 100vh;
+    min-height: 550px;
+    background-image: url('http://www.planwallpaper.com/static/images/Free-Wallpaper-Nature-Scenes.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow-y: hidden;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-reg-panel {
+    position: relative;
+    width: 50%; /* ׳’׳•׳‘׳” ׳”׳×׳™׳‘׳” ׳”׳›׳—׳•׳׳”, ׳ ׳™׳×׳ ׳׳©׳ ׳•׳× ׳׳₪׳™ ׳”׳¦׳•׳¨׳ */
+    max-width: 1000px; /* ׳’׳•׳‘׳” ׳׳§׳¡׳™׳׳׳™ */
+    height: 50%; /* ׳’׳•׳‘׳” ׳”׳×׳™׳‘׳” ׳”׳›׳—׳•׳׳”, ׳ ׳™׳×׳ ׳׳©׳ ׳•׳× ׳׳₪׳™ ׳”׳¦׳•׳¨׳ */
+    background-color: rgba(154, 222, 200, 1.8); /* ׳¦׳‘׳¢ ׳—׳“׳© ׳•׳׳¢׳ ׳™׳™׳ (׳›׳—׳•׳ ׳›׳”׳” ׳¢׳ ׳©׳§׳™׳₪׳•׳×) */
+    border-radius: 15px; /* ׳₪׳™׳ ׳•׳× ׳׳¢׳•׳’׳׳•׳× */
+    padding: 20px;
+    box-shadow: 0 0 30px 5px rgba(0, 0, 0, 0.4); /* ׳¦׳ ׳—׳™׳¦׳•׳ ׳™ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.white-panel {
+    background-color: rgba(255, 255, 255, 1);
+    width: 70%;
+    padding-bottom: 20px;
+    border-radius: 15px; /* ׳₪׳™׳ ׳•׳× ׳׳¢׳•׳’׳׳•׳× */
+    box-shadow: 0 0 15px 9px #00000096;
+    padding: 30px;
+    margin: 0 auto;
+}
+
+
+/* ׳›׳₪׳×׳•׳¨ ׳—׳–׳¨׳” */
+.back-button {
+    position: absolute;
+    top: 20px; /* ׳”׳׳¨׳—׳§ ׳׳׳׳¢׳׳” */
+    left: 20px; /* ׳”׳׳¨׳—׳§ ׳׳¦׳“ ׳©׳׳׳ */
+    background-color: rgba(149, 190, 180, 1); /* ׳¦׳‘׳¢ ׳¨׳§׳¢ ׳›׳”׳” ׳™׳•׳×׳¨ ׳׳”׳×׳™׳‘׳” ׳”׳›׳—׳•׳׳” */
+    color: #fff; /* ׳¦׳‘׳¢ ׳”׳˜׳§׳¡׳˜ */
+    border: none; /* ׳‘׳׳™ ׳’׳‘׳•׳ */
+    border-radius: 5px; /* ׳₪׳™׳ ׳•׳× ׳׳¢׳•׳’׳׳•׳× */
+    padding: 10px 20px; /* ׳¨׳™׳₪׳•׳“ ׳₪׳ ׳™׳׳™ */
+    font-size: 16px; /* ׳’׳•׳“׳ ׳”׳₪׳•׳ ׳˜ */
+    cursor: pointer; /* ׳׳¦׳‘׳¢׳ ׳—׳¥ */
+    text-decoration: none; /* ׳‘׳׳™ ׳§׳• ׳×׳—׳×׳•׳ */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* ׳¦׳ ׳—׳™׳¦׳•׳ ׳™ */
+    z-index: 10; /* ׳׳¢׳ ׳”׳×׳•׳›׳ */
+}
+
+.back-button:hover {
+    background-color: #1b5e20; /* ׳¦׳‘׳¢ ׳¨׳§׳¢ ׳›׳׳©׳¨ ׳”׳¢׳›׳‘׳¨ ׳׳¢׳ ׳”׳›׳₪׳×׳•׳¨ */
+}
+
+
+.step-form {
+    display: none;
+}
+
+.show-log-panel {
+    display: block;
+    opacity: 0.9;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #b5b5b5;
+    outline: none;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: #444444;
+    color: #f9f9f9;
+}
+
+.btn-secondary {
+    background: #b5b5b5;
+    color: #444444;
+}
+
+.btn-success {
+    background: #2c7715;
+    color: #f9f9f9;
+}
