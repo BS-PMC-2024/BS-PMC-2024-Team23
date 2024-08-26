@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result,ask_openai
+from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact
 from datetime import datetime
 
 
@@ -481,12 +481,13 @@ def remove_users():
 
 
 
+
 @app.route("/coach", methods=["GET", "POST"])
 def coach():
     if "user" in session:
         email = session["email"]
         user = Users.query.filter_by(email=email).first()
-        topics = Topics.query.all()  # קבלת כל הנושאים
+        topics = Topics.query.all()
 
         if request.method == "POST":
             user.about_me = request.form["about_text"]
@@ -497,32 +498,33 @@ def coach():
         try:
             # הוספת העובדה מה-API
             fact = get_random_fact_from_openai()
+            print(f"Fetched fact from OpenAI: {fact}")  # הדפסת העובדה בטרמינל
         except Exception as e:
             fact = "Unable to fetch fact at this moment."
+            print(f"Error fetching fact: {e}")  # הדפסת שגיאה בטרמינל
 
         return render_template("coach.html", coach_info=user.about_me, topics=topics, fact=fact)
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
-
 @app.route("/get_fact", methods=["GET"])
 def get_fact():
     if "user" in session:
         try:
             # קריאה ל-AI כדי לקבל עובדה אקראית
-            fact = get_random_fact_from_openai()  # הפונקציה שתקרא ל-OpenAI כדי לקבל את העובדה
+            fact = get_random_fact_from_openai()
+            print(f"Fetched fact from OpenAI: {fact}")  # הדפסת העובדה בטרמינל
             return jsonify({"fact": fact}), 200
         except Exception as e:
+            print(f"Error fetching fact: {e}")  # הדפסת שגיאה בטרמינל
             return jsonify({"error": str(e)}), 500
-    return jsonify({"error": str("no user in session")}), 500
+    return jsonify({"error": "No user in session"}), 403
 
 def get_random_fact_from_openai():
     # לוגיקה לביצוע קריאה ל-OpenAI ולקבל עובדה אקראית
-    prompt = "Give me a random fitness or well-being fact."
-    response = call_openAI_simple(prompt)  # פונקציה שכבר קיימת אצלך ומבצעת את הקריאה
-    return response
-
+    fact = call_openAI_for_fact()
+    return fact
 
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])

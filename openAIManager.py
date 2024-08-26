@@ -4,13 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 def call_openAI(name: str, age: int, gender: str, weight: int, height: int, goal: str, training_frequency: int,
                 fitness_level: str) -> str:
     api_key = os.getenv('API_KEY')
 
     if not api_key:
-        raise ValueError("API_KEY is missing. Please check your ..env file.")
+        raise ValueError("API_KEY is missing. Please check your .env file.")
 
     client = OpenAI(api_key=api_key)
 
@@ -34,6 +33,7 @@ def call_openAI(name: str, age: int, gender: str, weight: int, height: int, goal
         )
 
         response = completion.choices[0].message.content.strip()
+        print("Successfully called OpenAI API for exercise program.")  # הודעה על הצלחה
         return response
 
     except Exception as e:
@@ -41,18 +41,15 @@ def call_openAI(name: str, age: int, gender: str, weight: int, height: int, goal
         return "An error occurred while generating the program."
 
 
-def accpected_result(program:str,time:str ,weight:int,high:int,name:str,gender:str):
+def accpected_result(program: str, time: str, weight: int, height: int, name: str, gender: str) -> str:
     api_key = os.getenv('API_KEY')
     if not api_key:
-        raise ValueError("API_KEY is missing. Please check your ..env file.")
+        raise ValueError("API_KEY is missing. Please check your .env file.")
     client = OpenAI(api_key=api_key)
-    prompt=(f"give me the expected result for this program {program} if the user will follow this program for {time}"
-            f"the user wieght is {weight} and hes height is {high} and hes gender is {gender}"
-            f"and hes name is {name}"
-            f" you have all the information about the user in the program, you can see hes name,age,gender,"
-            f"wegiht,height,goal and training frequency to predice the accpected result for him and give him some motivation to keep follow the plan."
-            f"please talk more and give a lot of motivation!"
-            f"give me the result only in kg")
+    prompt = (f"Give me the expected result for this program {program} if the user will follow this program for {time}. "
+              f"The user weighs {weight} kg, is {height} cm tall, and is {gender}. "
+              f"His name is {name}. "
+              f"Please provide the result in kilograms and give motivation!")
     try:
         completion = client.chat.completions.create(
             model="gpt-4",
@@ -62,18 +59,19 @@ def accpected_result(program:str,time:str ,weight:int,high:int,name:str,gender:s
         )
 
         response2 = completion.choices[0].message.content.strip()
+        print("Successfully called OpenAI API for expected result.")  # הודעה על הצלחה
         return response2
 
     except Exception as e:
         print(f"Error in OpenAI API call: {e}")
-        return "An error occurred while generating the program."
+        return "An error occurred while generating the expected result."
 
 
 def ask_openai(prompt: str) -> str:
     api_key = os.getenv('API_KEY')
 
     if not api_key:
-        raise ValueError("API_KEY is missing. Please check your ..env file.")
+        raise ValueError("API_KEY is missing. Please check your .env file.")
 
     client = OpenAI(api_key=api_key)
 
@@ -86,8 +84,40 @@ def ask_openai(prompt: str) -> str:
         )
 
         response = completion.choices[0].message.content.strip()
+        print("Successfully called OpenAI API for a custom prompt.")  # הודעה על הצלחה
         return response
 
     except Exception as e:
         print(f"Error in OpenAI API call: {e}")
         return "An error occurred while processing your request."
+
+
+def call_openAI_for_fact() -> str:
+    api_key = os.getenv('API_KEY')
+
+    if not api_key:
+        raise ValueError("API_KEY is missing. Please check your .env file.")
+
+    client = OpenAI(api_key=api_key)
+
+    prompt = "Give me a random fitness or well-being fact."
+
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=100,
+            temperature=0.7,
+        )
+
+        response = completion.choices[0].message.content.strip()
+        print("Successfully called OpenAI API for a random fitness fact.")  # הודעה על הצלחה
+        return response
+
+    except Exception as e:
+        print(f"Error in OpenAI API call: {e}")
+        return "An error occurred while generating the fitness fact."
+
+
+
+
