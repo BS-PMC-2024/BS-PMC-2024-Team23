@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+    <link href="https://fonts.googleapis.com/css?family=Mukta" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+</head>
+<body>
+    <div class="login-reg-panel">
+        <!-- כפתור חזרה -->
+        <a href="{{ url_for('login') }}" class="back-button">Back</a>
+
+        <div class="white-panel">
+            <form id="registration-form" method="POST" action="{{ url_for('register') }}">
+                <!-- Step 1 -->
+                <div id="step1" class="step-form show-log-panel">
+                    <h2>Step 1: Enter your Name</h2>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="First Name" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Last Name" name="last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" name="user_type" required>
+                            <option value="" disabled selected>Select your role</option>
+                            <option value="Coach">Coach</option>
+                            <option value="Trainee">Trainee</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="showStep(2)">Continue</button>
+                </div>
+
+                <!-- Step 2 -->
+                <div id="step2" class="step-form" style="display:none;">
+                    <h2>Step 2: Enter your Weight, Height, Age, and Gender</h2>
+                    <div class="form-group">
+                        <input type="number" class="form-control" placeholder="Weight (kg)" name="weight" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" class="form-control" placeholder="Height (cm)" name="height" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" class="form-control" placeholder="Age" name="age" required>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" name="gender" required>
+                            <option value="" disabled selected>Select your gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="showStep(1)">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="showStep(3)">Continue</button>
+                </div>
+
+                <!-- Step 3 -->
+                <div id="step3" class="step-form" style="display:none;">
+                    <h2>Step 3: Create your Account</h2>
+                    <div class="form-group">
+                        <input type="email" class="form-control" placeholder="Email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Confirm Password" name="confirm_password" required>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="showStep(2)">Back</button>
+                    <button type="submit" class="btn btn-success">Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+</body>
+</html>
