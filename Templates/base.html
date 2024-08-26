@@ -20,60 +20,53 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
+
+
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
            <li class="nav-item">
-            <a class="nav-link" href="{% if session.get('user_type') ==
-             'Admin' %}{{ url_for('admin') }}{% elif session.get('user_type') ==
-             'Coach' %}{{ url_for('coach') }}{% else %}{{ url_for('user') }}{% endif %}">Home</a>
+            <a class="nav-link" href="{% if session.get('user_type') == 'Admin' %}{{ url_for('admin') }}{% elif session.get('user_type') == 'Coach' %}{{ url_for('coach') }}{% else %}{{ url_for('user') }}{% endif %}">Home</a>
+            <li class="nav-item {% if request.endpoint == 'home' %}active{% endif %}">
+                <a class="nav-link" href="/home">Home</a>
             </li>
 
+            <li class="nav-item">
             <li class="nav-item {% if request.endpoint == 'about' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('about') }}">About</a>
+                <a class="nav-link" href="/about">About</a>
             </li>
-            {% if current_user and current_user.user_type != 'Admin' %}
-            <li class="nav-item {% if request.endpoint == 'ask_openai_view' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('ask_openai_view') }}">Ask OpenAI</a>
-            </li>
-            {% endif %}
             <li class="nav-item {% if request.endpoint == 'edit_user' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('edit_user') }}">Edit Profile</a>
+                <a class="nav-link" href="/edit_user">Edit profile</a>
             </li>
+
             {% if current_user and current_user.user_type == 'Admin' %}
             <li class="nav-item {% if request.endpoint == 'remove_users' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('remove_users') }}">Remove Users</a>
-            </li>
-            <li class="nav-item {% if request.endpoint == 'edit_user_admin' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('edit_user_admin') }}">Edit Users</a>
-            </li>
-            <li class="nav-item {% if request.endpoint == 'manage_topics' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('manage_topics') }}">Manage Topics</a>
+                <a class="nav-link" href="/remove_users">Remove Users</a>
             </li>
             {% endif %}
+
+            {% if session.user_type == 'Admin' %}
+            <li class="nav-item {% if request.endpoint == 'edit_user_admin' %}active{% endif %}">
+                <a class="nav-link" href="/edit_user_admin">Edit Users</a>
+            </li>
+            {% endif %}
+
+            {% if session.get("user_type") == 'Admin' %}
+            <li class="nav-item {% if request.endpoint == 'manage_topics' %}active{% endif %}">
+                <a class="nav-link" href="/manage_topics">Manage Topics</a>
+            </li>
+            {% endif %}
+
             <li class="nav-item {% if request.endpoint == 'feedback' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('feedback') }}">Feedback</a>
+                <a class="nav-link" href="/feedback">Feedback</a>
             </li>
+
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                <a class="nav-link" href="/logout">Logout</a>
             </li>
+
         </ul>
     </div>
 </nav>
-
-<!-- Flash messages block -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="container mt-3">
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endwith %}
-<!-- End of flash messages block -->
 
 <div class="container-fluid">
     {% block content %}
@@ -83,6 +76,5 @@
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
 </body>
 </html>

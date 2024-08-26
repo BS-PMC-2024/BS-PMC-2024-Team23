@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome Coach!{% endblock %}
+
+{% block content %}
+<div class="background-image">
+    <div class="container mt-5">
+        <div class="welcome-message">
+            <h1 class="text-center">Welcome Coach!</h1>
+            <h2 class="text-center mt-10">About Me:</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    <p id="coach-info">{{ coach_info }}</p>
+                    <!-- Button trigger modal -->
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal">
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fact section -->
+    <div class="container mt-5">
+        <h2 class="text-center">Fitness facts</h2>
+        <div id="fact-container" class="alert alert-success text-center">
+            <p id="fact-text">{{ fact }}</p>
+        </div>
+        <div class="text-center mt-3">
+            <button id="newFactBtn" class="btn btn-info">Get New Fact</button>
+        </div>
+    </div>
+
+    <!-- Display Topics -->
+    <div class="container mt-5">
+        <h2 class="text-center">Topics</h2>
+        <ul class="list-group">
+            {% for topic in topics %}
+                <li class="list-group-item">
+                    <h5 class="topic-title">{{ topic.title }}</h5>
+                    <button class="btn btn-outline-info btn-sm show-description-btn" onclick="toggleTopic({{ topic.id }})">Show Description</button>
+                    <div id="topic-description-{{ topic.id }}" style="display:none;">
+                        <p>{{ topic.description }}</p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit About Me</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="/coach" method="POST">
+                    <div class="form-group">
+                        <textarea class="form-control" id="about-text" name="about_text" rows="5">{{ coach_info }}</textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Display flashed messages -->
+{% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        {% for category, msg in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ msg }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+
+
+
+<!-- JavaScript to fetch a new fact -->
+<script>
+document.getElementById('newFactBtn').addEventListener('click', async function() {
+    try {
+        const response = await fetch('/get_fact', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const data = await response.json();
+        console.log('Success:', data);
+
+        const factText = document.getElementById('fact-text');
+        factText.textContent = data.fact;
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('fact-container').innerHTML = '<p class="text-danger">An error occurred: ' + error + '</p>';
+    }
+});
+</script>
+
+<script>
+function toggleTopic(topicId) {
+    const descriptionDiv = document.getElementById('topic-description-' + topicId);
+    const displayStyle = descriptionDiv.style.display;
+
+    // Send an asynchronous request to record the click
+    fetch('/record_click', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ topic_id: topicId })
+    });
+
+    // Toggle visibility
+    descriptionDiv.style.display = (displayStyle === 'none') ? 'block' : 'none';
+}
+</script>
+
+<style>
+    .topic-title {
+        font-size: 1.5rem; /* מגדיל את הכותרת */
+        font-weight: bold;
+        color: #007bff; /* צבע כחול מותאם אישית */
+        margin-bottom: 10px;
+    }
+
+    .show-description-btn {
+        padding: 5px 10px; /* הקטנת הכפתור */
+        font-size: 0.9rem; /* הקטנת גודל הטקסט בכפתור */
+        margin-top: 5px; /* הוספת רווח מעל הכפתור */
+        display: block; /* הכפתור מוצג מתחת לכותרת */
+    }
+</style>
+{% endblock %}

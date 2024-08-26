@@ -69,3 +69,18 @@ img.img-fluid {
     text-align: center;
     margin-bottom: 30px;
 }
+<style>
+    .topic-title {
+        font-size: 1.5rem; /* מגדיל את הכותרת */
+        font-weight: bold;
+        color: #007bff; /* צבע כחול מותאם אישית */
+        margin-bottom: 10px;
+    }
+
+    .show-description-btn {
+        padding: 5px 10px; /* קטין את הכפתור */
+        font-size: 0.9rem; /* הקטנת גודל הטקסט בכפתור */
+        margin-top: 5px; /* הוסף רווח מעל הכפתור */
+        display: block; /* הכפתור מוצג מתחת לכותרת */
+    }
+</style>
