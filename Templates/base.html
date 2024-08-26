@@ -27,35 +27,37 @@
              'Admin' %}{{ url_for('admin') }}{% elif session.get('user_type') ==
              'Coach' %}{{ url_for('coach') }}{% else %}{{ url_for('user') }}{% endif %}">Home</a>
             </li>
-
-            <li class="nav-item {% if request.endpoint == 'about' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('about') }}">About</a>
-            </li>
-            {% if current_user and current_user.user_type != 'Admin' %}
-            <li class="nav-item {% if request.endpoint == 'ask_openai_view' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('ask_openai_view') }}">Ask OpenAI</a>
-            </li>
-            {% endif %}
-            <li class="nav-item {% if request.endpoint == 'edit_user' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('edit_user') }}">Edit Profile</a>
-            </li>
             {% if current_user and current_user.user_type == 'Admin' %}
-            <li class="nav-item {% if request.endpoint == 'remove_users' %}active{% endif %}">
-                <a class="nav-link" href="{{ url_for('remove_users') }}">Remove Users</a>
-            </li>
             <li class="nav-item {% if request.endpoint == 'edit_user_admin' %}active{% endif %}">
                 <a class="nav-link" href="{{ url_for('edit_user_admin') }}">Edit Users</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'remove_users' %}active{% endif %}">
+                <a class="nav-link" href="{{ url_for('remove_users') }}">Remove Users</a>
             </li>
             <li class="nav-item {% if request.endpoint == 'manage_topics' %}active{% endif %}">
                 <a class="nav-link" href="{{ url_for('manage_topics') }}">Manage Topics</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            </li>
             {% endif %}
+            {% if current_user and current_user.user_type == 'Trainee' or current_user and current_user.user_type == 'Coach' %}
+            <li class="nav-item {% if request.endpoint == 'ask_openai_view' %}active{% endif %}">
+                <a class="nav-link" href="{{ url_for('ask_openai_view') }}">Ask OpenAI</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'edit_user' %}active{% endif %}">
+                <a class="nav-link" href="{{ url_for('edit_user') }}">Edit Profile</a>
+            </li>
             <li class="nav-item {% if request.endpoint == 'feedback' %}active{% endif %}">
                 <a class="nav-link" href="{{ url_for('feedback') }}">Feedback</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'about' %}active{% endif %}">
+                <a class="nav-link" href="{{ url_for('about') }}">About</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
             </li>
+            {% endif %}
         </ul>
     </div>
 </nav>
@@ -86,3 +88,4 @@
 
 </body>
 </html>
+
