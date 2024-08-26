@@ -5,13 +5,15 @@
 {% block content %}
 <div class="container mt-5">
     <h2>Edit User Details</h2>
+
+    <!-- Form to select a user -->
     <form method="POST" id="selectUserForm">
         <div class="form-group">
             <label for="user_id">Select User:</label>
             <select class="form-control" id="user_id" name="user_id" onchange="this.form.submit()">
                 <option value="">Select a user</option>
                 {% for user in users %}
-                <option value="{{ user._id }}" {% if selected_user and user._id == selected_user._id %}selected{% endif %}>
+                <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
                     {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
                 </option>
                 {% endfor %}
@@ -19,9 +21,10 @@
         </div>
     </form>
 
+    <!-- Form to edit selected user details -->
     {% if selected_user %}
     <form method="POST">
-        <input type="hidden" name="user_id" value="{{ selected_user._id }}">
+        <input type="hidden" name="user_id" value="{{ selected_user.id }}">
 
         <h3>Update User Information</h3>
 
