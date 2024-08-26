@@ -733,6 +733,12 @@ def load_fake_data():
     print("Fake data loaded!")
 
 
+
+
+
+
+
+
 if __name__ == "__main__":
     create_users_table()
     load_fake_data()
