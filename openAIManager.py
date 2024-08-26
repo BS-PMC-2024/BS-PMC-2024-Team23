@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def call_openAI(name: str, age: int, gender: str, weight: int, height: int, goal: str, training_frequency: int,
                 fitness_level: str) -> str:
     api_key = os.getenv('API_KEY')
@@ -46,10 +47,13 @@ def accpected_result(program: str, time: str, weight: int, height: int, name: st
     if not api_key:
         raise ValueError("API_KEY is missing. Please check your .env file.")
     client = OpenAI(api_key=api_key)
-    prompt = (f"Give me the expected result for this program {program} if the user will follow this program for {time}. "
-              f"The user weighs {weight} kg, is {height} cm tall, and is {gender}. "
-              f"His name is {name}. "
-              f"Please provide the result in kilograms and give motivation!")
+    prompt=(f"give me the expected result for this program {program} if the user will follow this program for {time}"
+            f"the user wieght is {weight} and hes height is {height} and hes gender is {gender}"
+            f"and hes name is {name}"
+            f" you have all the information about the user in the program, you can see hes name,age,gender,"
+            f"wegiht,height,goal and training frequency to predice the accpected result for him and give him some motivation to keep follow the plan."
+            f"please talk more and give a lot of motivation!"
+            f"give me the result only in kg")
     try:
         completion = client.chat.completions.create(
             model="gpt-4",
