@@ -274,11 +274,11 @@ def interactive_feedback():
 
 
 @app.route("/user/result", methods=["POST"])
-def user_accpected_result():
-    return render_template("accpected_result.html")
+def user_accepted_result():
+    return render_template("accepted_result.html")
 
-# @app.route("/accpected/result")
-# def render_accpected_result():
+# @app.route("/accepted/result")
+# def render_accepted_result():
 
 
 @app.route("/fetch_expected_result", methods=["POST"])
