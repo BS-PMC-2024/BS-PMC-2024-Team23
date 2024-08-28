@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
+from openAIManager import call_openAI, accpected_result,ask_openai,ai_suggestions
 from openAIManager import call_openAI, accpected_result, ask_openai, call_openAI_for_fact, get_ai_suggestions
 from datetime import datetime
 
@@ -69,6 +70,10 @@ class UserProgress(db.Model):
     training_frequency = db.Column(db.Integer, nullable=False)
     weight = db.Column(db.Float, nullable=False)
     workout_count = db.Column(db.Integer, nullable=False)
+    avg_training_frequency = db.Column(db.Integer, nullable=False, default=0.0)
+    avg_weight_change = db.Column(db.Float, nullable=False, default=0.0)
+    ai_suggestions = db.Column(db.Text, nullable=True, default='')
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
 
     user = db.relationship('Users', back_populates='progress')
 
@@ -120,7 +125,7 @@ def login():
 
 
 def handle_login_post():
-    session.permanent = True  # שמירה על הסשן קבוע כפי שנעשה בפונקציה הישנה
+    session.permanent = False
     email = request.form.get("email")
     password = request.form.get("password")
 
@@ -129,16 +134,11 @@ def handle_login_post():
     if found_user and found_user.check_password(password):
         set_user_session(found_user)
 
-        # הכוונה למשתמש בהתאם לסוגו
-        if found_user.user_type == "Coach":
-            return redirect(url_for("coach"))
-        elif found_user.user_type == "Trainee":
+        if user_goals_complete(found_user):
             return redirect(url_for("user"))
-        elif found_user.user_type == "Admin":
-            return redirect(url_for("admin"))
-        else:
-            flash("Invalid user type", "danger")
-            return redirect(url_for("home"))
+
+        return redirect_based_on_user_type(found_user)
+
     else:
         flash("User not found or incorrect password. Please register.", "danger")
         return redirect(url_for("home"))
@@ -241,68 +241,6 @@ def save_user_data():
         return redirect(url_for("login"))
 
 
-@app.route("/interactive_feedback", methods=["GET", "POST"])
-def interactive_feedback():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    # Retrieve the logged-in user's information
-    email = session.get("email")
-    user = Users.query.filter_by(email=email).first()
-
-    if not user:
-        flash("User not found.", "danger")
-        return redirect(url_for("login"))
-
-    # Initialize the date range to filter progress entries
-    start_date = request.form.get("start_date", None)
-    end_date = request.form.get("end_date", None)
-
-    # Query progress entries with optional date filtering
-    query = UserProgress.query.filter_by(user_id=user.id)
-    if start_date and end_date:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        query = query.filter(UserProgress.date.between(start_date, end_date))
-
-    progress_entries = query.order_by(UserProgress.week_number).all()
-
-    # Calculate average metrics
-    total_weeks = len(progress_entries)
-    total_workouts = sum(entry.workout_count for entry in progress_entries)
-    total_weight_change = (progress_entries[-1].weight - progress_entries[0].weight) if total_weeks > 1 else 0
-
-    avg_workout_frequency = total_workouts / total_weeks if total_weeks > 0 else 0
-    avg_weight_change = total_weight_change / total_weeks if total_weeks > 0 else 0
-
-    # Extract progress data for the chart
-    weeks = [entry.week_number for entry in progress_entries]
-    weights = [entry.weight for entry in progress_entries]
-    workout_counts = [entry.workout_count for entry in progress_entries]
-
-    # Render the template with the necessary data
-    return render_template(
-        "interactive_feedback.html",
-        user=user,
-        weeks=weeks,
-        weights=weights,
-        workout_counts=workout_counts,
-        avg_workout_frequency=avg_workout_frequency,
-        avg_weight_change=avg_weight_change,
-        progress_entries=progress_entries,
-        start_date=start_date.strftime('%Y-%m-%d') if start_date else '',
-        end_date=end_date.strftime('%Y-%m-%d') if end_date else ''
-    )
-
-
-@app.route("/user/result", methods=["POST"])
-def user_accpected_result():
-    return render_template("accpected_result.html")
-
-# @app.route("/accpected/result")
-# def render_accpected_result():
-
-
 @app.route("/fetch_expected_result", methods=["POST"])
 def fetch_expected_result():
     if "user" in session:
@@ -320,15 +258,6 @@ def fetch_expected_result():
             return jsonify({"error": "No program found for the user"}), 404
     else:
         return jsonify({"error": "User not authenticated"}), 401
-
-
-
-
-
-
-
-
-
 
 
 @app.route("/logout")
@@ -679,6 +608,152 @@ def manage_topics():
         return redirect(url_for("login"))
 
 
+@app.route("/interactive_feedback", methods=["GET", "POST"])
+def interactive_feedback():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    # Retrieve the logged-in user's information
+    email = session.get("email")
+    user = Users.query.filter_by(email=email).first()
+
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        # Handle form submission to update training details
+        week_number = request.form.get("week_number", type=int)
+        weight = request.form.get("weight", type=float)  # Assuming you want to capture weight as well
+        workout_count = request.form.get("workout_count", type=int)  # Assuming you want to capture workout count
+
+        # Validate the form inputs
+        if not all([week_number, weight, workout_count]):
+            flash("Invalid input. Please fill out all fields.", "danger")
+            return redirect(url_for("interactive_feedback"))
+
+        existing_entry = UserProgress.query.filter_by(user_id=user.id, week_number=week_number).first()
+
+        if existing_entry:
+            # Update the existing progress entry
+            update_progress(existing_entry, weight, workout_count, user)
+            flash("Progress updated successfully!", "success")
+        else:
+            # Create a new progress entry
+            create_new_progress(user, week_number, weight, workout_count)
+            flash("Progress added successfully!", "success")
+
+        db.session.commit()
+
+    # Initialize the date range to filter progress entries
+    start_date, end_date = get_data_range_from_request(request)
+
+    # Query and filter progress entries
+    progress_entries = get_filtered_progress_entries(user.id, start_date, end_date)
+
+    # Calculate average metrics
+    avg_training_frequency, avg_weight_change = calculate_averages(progress_entries)
+
+    # Extract data for chart display
+    weeks, weights, workout_counts = extract_progress_data(progress_entries)
+
+    # Generate AI suggestions based on user data and progress
+    ai_suggestions_text = generate_ai_suggestions(user, avg_training_frequency, avg_weight_change)
+
+    # Optionally save AI suggestions to the user's record
+    user.ai_suggestions = ai_suggestions_text
+    db.session.commit()
+
+    # Render the template with the necessary data
+    return render_template(
+        "interactive_feedback.html",
+        user=user,
+        weeks=weeks,
+        weights=weights,
+        workout_counts=workout_counts,
+        avg_training_frequency=avg_training_frequency,
+        avg_weight_change=avg_weight_change,
+        progress_entries=progress_entries,
+        start_date=format_date(start_date),
+        end_date=format_date(end_date),
+        suggestions=ai_suggestions_text
+    )
+
+
+def get_data_range_from_request(request):
+    """ Extract start and end dates from the request form."""
+    start_date = request.form.get("start_date", None)
+    end_date = request.form.get("end_date", None)
+
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+
+    return start_date, end_date
+
+def get_filtered_progress_entries(user_id, start_date, end_date):
+    """ Retrieve user progress entries, optionally filtered by a date range. """
+    query = UserProgress.query.filter_by(user_id=user_id)
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        query = query.filter(UserProgress.date.between(start_date, end_date))
+    return query.order_by(UserProgress.week_number).all()
+
+
+def calculate_averages(progress_entries):
+    """ Calculate average workout frequency and weight change from progress entries. """
+    total_weeks = len(progress_entries)
+    if total_weeks == 0:
+        return 0, 0
+
+    total_workouts = sum(entry.workout_count for entry in progress_entries)
+    total_weight_change = 0
+
+    if total_weeks > 1:
+        total_weight_change = progress_entries[-1].weight - progress_entries[0].weight
+
+    avg_training_frequency = total_workouts / total_weeks
+    avg_weight_change = total_weight_change / (total_weeks - 1)
+    return avg_training_frequency, avg_weight_change
+
+
+def extract_progress_data(progress_entries):
+    """ Extract week numbers, weights, and workout counts from progress entries for chart display. """
+    weeks = [entry.week_number for entry in progress_entries]
+    weights = [entry.weight for entry in progress_entries]
+    workout_counts = [entry.workout_count for entry in progress_entries]
+    return weeks, weights, workout_counts
+
+def generate_ai_suggestions(user, avg_training_frequency, avg_weight_change):
+    """ Generate AI suggestions based on user data and calculated averages. """
+    return ai_suggestions(
+        user_name=user.first_name,
+        age=user.age,
+        gender=user.gender,
+        weight=user.weight,
+        height=user.height,
+        fitness_goal=user.fitness_goal,
+        avg_training_frequency=avg_training_frequency,
+        avg_weight_change=avg_weight_change,
+        training_frequency=user.training_frequency,
+        fitness_level=user.fitness_level,
+        program=user.program
+    )
+
+def format_date(date):
+    """ Format the date to a string, if it's not None. """
+    return date.strftime('%Y-%m-%d') if date else ''
+
+@app.route("/user/result", methods=["POST"])
+def user_accepted_result():
+    return render_template("accepted_result.html")
+
+# @app.route("/accepted/result")
+# def render_accepted_result():
+
+
 @app.route("/add_progress", methods=["POST"])
 def add_progress():
     if "user" not in session:
@@ -691,6 +766,7 @@ def add_progress():
     week_number = request.form.get("week_number")
     weight = request.form.get("weight")
     workout_count = request.form.get("workout_count")
+    training_frequency = user.training_frequency
 
     # Validate form data
     if not all([week_number, weight, workout_count]):
@@ -709,6 +785,7 @@ def add_progress():
         flash("Progress added successfully!", "success")
 
     db.session.commit()
+
     return redirect(url_for("interactive_feedback"))
 
 
@@ -735,6 +812,18 @@ def create_new_progress(user, week_number, weight, workout_count) -> None:
         workout_count=int(workout_count)
     )
     db.session.add(new_progress)
+
+def get_previous_progress(user_id):
+    """Fetches the user's progress history for better AI suggestions."""
+
+    previous_progress = UserProgress.query.filter_by(user_id=user_id).order_by(UserProgress.week_number.desc()).limit(5).all()
+    progress_data = [{
+        "week_number": entry.week_number,
+        "weight": entry.weight,
+        "workout_count": entry.workout_count
+    } for entry in previous_progress]
+
+    return progress_data
 
 
 def create_users_table():
@@ -802,6 +891,7 @@ def load_fake_data():
                 db.session.rollback()
 
     print("Fake data loaded!")
+
 
 
 if __name__ == "__main__":
