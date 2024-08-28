@@ -9,15 +9,17 @@ body {
     margin: 0;
     padding: 0;
 }
-
-
 .background-image {
-    background-image: url('{{ url_for('static', filename='images\BG.webp') }}');
+    background-image: url("{{ url_for('static', filename='images/banner.jpg') }}");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    min-height: 100vh;
-    padding: 30px;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .card {
@@ -68,4 +70,49 @@ img.img-fluid {
 .welcome-message {
     text-align: center;
     margin-bottom: 30px;
+}
+
+/* Custom styling for the suggestions card */
+#suggestion-container {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#suggestion-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card-body p {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: #333;
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Header styling */
+h2, h3 {
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
