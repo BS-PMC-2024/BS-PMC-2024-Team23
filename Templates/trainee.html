@@ -21,7 +21,6 @@
         <h3 class="text-center mb-4">Suggestions to Develop {{ request.form.get('muscle_type') }}</h3>
         <div id="suggestion-container" class="card shadow-lg">
             <div class="card-body">
-                <!-- Use safe filter to render HTML content -->
                 <p class="card-text">{{ suggestion|safe }}</p>
             </div>
         </div>
