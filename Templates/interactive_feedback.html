@@ -6,17 +6,85 @@ Interactive Feedback
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center display-4 text-gold">Your Progress and Feedback</h2>
+    <h2 class="text-center display-4 text-gold mb-5">Your Progress and Feedback</h2>
+
+    <!-- AI Suggestions Section -->
+    {% if suggestions %}
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="text-center text-gold">AI Suggestions for Improvement</h4>
+            <div class="alert alert-info bg-dark text-white">
+                {{ suggestions }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- User Input for Training Details -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h4 class="text-center text-gold mb-4">Update Your Training Details</h4>
+            <form action="{{ url_for('interactive_feedback') }}" method="POST" class="text-center">
+                <div class="form-group mb-4">
+                    <label for="week_number" class="font-weight-bold text-gold">Week Number:</label>
+                    <input type="number" id="week_number" name="week_number" min="1"
+                           class="form-control form-control-lg bg-dark text-light" required>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="weight" class="font-weight-bold text-gold">Weight (kg):</label>
+                    <input type="number" id="weight" name="weight" step="0.1" min="0"
+                           class="form-control form-control-lg bg-dark text-light" required>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="workout_count" class="font-weight-bold text-gold">Workout Count:</label>
+                    <input type="number" id="workout_count" name="workout_count" min="0"
+                           class="form-control form-control-lg bg-dark text-light" required>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="training_frequency" class="font-weight-bold text-gold">Training Frequency (times per week):</label>
+                    <input type="number" id="training_frequency" name="training_frequency" min="1" max="7"
+                           class="form-control form-control-lg bg-dark text-light" required>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="fitness_level" class="font-weight-bold text-gold">Fitness Level:</label>
+                    <select id="fitness_level" name="fitness_level"
+                            class="form-control form-control-lg bg-dark text-light" required>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-gold btn-lg mb-2">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User's Fitness Goal and Training Frequency -->
+    <div class="row mt-5 text-center">
+        <div class="col-md-6 mb-4">
+            <h4 class="font-weight-bold text-gold">Fitness Goal</h4>
+            <p class="h3 text-light">{{ user.fitness_goal }}</p>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h4 class="font-weight-bold text-gold">Training Frequency</h4>
+            <p class="h3 text-light">{{ user.training_frequency }} times/week</p>
+        </div>
+    </div>
 
     <!-- Average Metrics Section -->
-    <div class="row mt-5 text-center">
-        <div class="col-md-6">
-            <h4 class="font-weight-bold text-white">Average Workout Frequency</h4>
-            <p class="text-muted h3">{{ avg_workout_frequency }}</p>
+    <div class="row mt-4 text-center">
+        <div class="col-md-6 mb-4">
+            <h4 class="font-weight-bold text-gold">Average Workout Frequency</h4>
+            <p class="h3 text-light">{{ avg_workout_frequency }}</p>
         </div>
-        <div class="col-md-6">
-            <h4 class="font-weight-bold text-white">Average Weight Change per Week</h4>
-            <p class="text-muted h3">{{ avg_weight_change }} kg</p>
+        <div class="col-md-6 mb-4">
+            <h4 class="font-weight-bold text-gold">Average Weight Change per Week</h4>
+            <p class="h3 text-light">{{ avg_weight_change }} kg</p>
         </div>
     </div>
 
@@ -25,12 +93,20 @@ Interactive Feedback
         <div class="col-md-12">
             <form action="{{ url_for('interactive_feedback') }}" method="POST" class="form-inline justify-content-center">
                 <div class="form-group mb-2">
-                    <label for="start_date" class="text-gold mr-2">Start Date:</label>
-                    <input type="date" class="form-control form-control-lg" id="start_date" name="start_date" value="{{ start_date }}">
+                    <label for="start_date" class="mr-2 text-gold">Start Date:</label>
+                    <input type="date"
+                           class="form-control form-control-lg bg-dark text-light"
+                           id="start_date"
+                           name="start_date"
+                           value="{{ start_date }}">
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <label for="end_date" class="text-gold mr-2">End Date:</label>
-                    <input type="date" class="form-control form-control-lg" id="end_date" name="end_date" value="{{ end_date }}">
+                    <label for="end_date" class="mr-2 text-gold">End Date:</label>
+                    <input type="date"
+                           class="form-control form-control-lg bg-dark text-light"
+                           id="end_date"
+                           name="end_date"
+                           value="{{ end_date }}">
                 </div>
                 <button type="submit" class="btn btn-gold btn-lg mb-2">Filter</button>
             </form>
@@ -40,8 +116,8 @@ Interactive Feedback
     <!-- Progress Chart -->
     <div class="row mt-5">
         <div class="col-md-12">
-            <h4 class="text-center text-gold">Progress Chart</h4>
-            <div class="chart-container" style="position: relative; height:40vh; width:80vw;">
+            <h4 class="text-center text-gold mb-4">Progress Chart</h4>
+            <div class="chart-container bg-dark p-4 rounded" style="position: relative; height:40vh; width:80vw;">
                 <canvas id="progressChart"></canvas>
             </div>
         </div>
@@ -50,7 +126,7 @@ Interactive Feedback
     <!-- Detailed Progress Table -->
     <div class="row mt-5">
         <div class="col-md-12">
-            <h4 class="text-center text-gold">Progress Details</h4>
+            <h4 class="text-center text-gold mb-4">Progress Details</h4>
             <table class="table table-dark table-striped table-bordered table-hover">
                 <thead class="thead-gold">
                     <tr>
@@ -77,41 +153,44 @@ Interactive Feedback
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    var ctx = document.getElementById('progressChart').getContext('2d');
-    var progressChart = new Chart(ctx, {
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const progressChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: {{ weeks | tojson }},
-            datasets: [{
-                label: 'Weight Progress',
-                data: {{ weights | tojson }},
-                borderColor: 'rgba(255, 215, 0, 1)',  // Gold color
-                backgroundColor: 'rgba(255, 215, 0, 0.2)', // Light gold background
-                borderWidth: 4,
-                pointBackgroundColor: 'rgba(255, 215, 0, 1)',
-                pointBorderColor: 'rgba(255, 255, 255, 1)',
-                pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
-                pointHoverBorderColor: 'rgba(255, 215, 0, 1)',
-                tension: 0.4 // Smooth curves
-            }, {
-                label: 'Workout Count',
-                data: {{ workout_counts | tojson }},
-                borderColor: 'rgba(255, 255, 255, 0.8)',  // White color
-                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Light white background
-                borderWidth: 4,
-                pointBackgroundColor: 'rgba(255, 255, 255, 1)',
-                pointBorderColor: 'rgba(255, 215, 0, 1)',
-                pointHoverBackgroundColor: 'rgba(255, 215, 0, 1)',
-                pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
-                tension: 0.4 // Smooth curves
-            }]
+            datasets: [
+                {
+                    label: 'Weight Progress',
+                    data: {{ weights | tojson }},
+                    borderColor: 'rgba(255, 215, 0, 1)',
+                    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgba(255, 215, 0, 1)',
+                    pointBorderColor: 'rgba(255, 255, 255, 1)',
+                    pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
+                    pointHoverBorderColor: 'rgba(255, 215, 0, 1)',
+                    tension: 0.3
+                },
+                {
+                    label: 'Workout Count',
+                    data: {{ workout_counts | tojson }},
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+                    pointBorderColor: 'rgba(255, 215, 0, 1)',
+                    pointHoverBackgroundColor: 'rgba(255, 215, 0, 1)',
+                    pointHoverBorderColor: 'rgba(0, 123, 255, 1)',
+                    tension: 0.3
+                }
+            ]
         },
         options: {
             scales: {
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(255, 255, 255, 0.2)'
+                        color: 'rgba(255, 255, 255, 0.1)'
                     },
                     ticks: {
                         color: '#fff',
@@ -122,7 +201,7 @@ Interactive Feedback
                 },
                 x: {
                     grid: {
-                        color: 'rgba(255, 255, 255, 0.2)'
+                        color: 'rgba(255, 255, 255, 0.1)'
                     },
                     ticks: {
                         color: '#fff',
@@ -137,7 +216,7 @@ Interactive Feedback
                     labels: {
                         color: '#fff',
                         font: {
-                            size: 18,
+                            size: 16,
                         }
                     }
                 }

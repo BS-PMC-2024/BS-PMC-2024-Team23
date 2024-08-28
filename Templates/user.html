@@ -4,12 +4,11 @@
 
 
 {% block content %}
-<div class="background-image">
-    <div class="container text-center">
-        <h1>Welcome to Your Personal Trainer!</h1>
-        <h4>{{ email }}</h4>
-    </div>
-
+    <div class="container mt-5">
+        <div class="welcome-message text-center">
+            <h1>Welcome to Your Personal Trainer!</h1>
+            <h4>{{ email }}</h4>
+        </div>
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card shadow-lg zoom-in">
@@ -47,12 +46,14 @@
             </div>
         </div>
         <form action="/user/result" method="POST">
-            <div class="row justify-content-center mt-4">
-                <div class="col-md-4 text-center">
-                    <button type="submit" class="btn btn-info btn-lg bounce">See Accepted Result</button>
-                </div>
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-4 text-center">
+                <!-- Removed the inline onclick handler to ensure form submission -->
+                <button type="submit" class="btn btn-info">See Expected Result</button>
             </div>
-        </form>
+        </div>
+
+        <!-- Button to call create_program API -->
         <div class="container mt-5 text-center">
             <button id="createProgramBtn" class="btn btn-success btn-lg flash">Create Program</button>
         </div>
