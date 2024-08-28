@@ -535,6 +535,8 @@ def edit_user_admin():
                 return redirect(url_for("edit_user_admin"))
 
             selected_user = db.session.get(Users, user_id)
+            print(f"User ID: {user_id}")
+            print(f"Selected User: {selected_user}")
 
             if selected_user:
                 selected_user.first_name = request.form.get("first_name")
@@ -730,21 +732,27 @@ def calculate_averages(progress_entries):
         return 0, 0
 
     total_workouts = sum(entry.workout_count for entry in progress_entries)
-    total_weight_change = 0
 
-    if total_weeks > 1:
-        total_weight_change = progress_entries[-1].weight - progress_entries[0].weight
+    # Ensure entries are sorted by week_number
+    progress_entries = sorted(progress_entries, key=lambda entry: entry.week_number)
+
+    # Calculate total weight change between the first and last week
+    total_weight_change = progress_entries[-1].weight - progress_entries[0].weight if total_weeks > 1 else 0
 
     avg_training_frequency = total_workouts / total_weeks
-    avg_weight_change = total_weight_change / (total_weeks - 1)
+    avg_weight_change = total_weight_change / total_weeks
     return avg_training_frequency, avg_weight_change
 
 
 def extract_progress_data(progress_entries):
+    """Extract week numbers, weights, and workout counts from progress entries for chart display."""
+    # Sort entries to ensure correct order
+    progress_entries = sorted(progress_entries, key=lambda entry: entry.week_number)
     weeks = [entry.week_number for entry in progress_entries]
     weights = [entry.weight for entry in progress_entries]
     workout_counts = [entry.workout_count for entry in progress_entries]
     return weeks, weights, workout_counts
+
 
 def generate_ai_suggestions(user, avg_training_frequency, avg_weight_change):
     """ Generate AI suggestions based on user data and calculated averages. """
@@ -810,6 +818,20 @@ def update_progress(progress, weight, workout_count, user) -> None:
     progress.last_name = user.last_name
     progress.fitness_goal = user.fitness_goal
     progress.training_frequency = user.training_frequency
+
+    db.session.commit()
+
+    # Recalculate averages for all entries
+    progress_entries = get_filtered_progress_entries(user.id, None, None)
+    avg_training_frequency, avg_weight_change = calculate_averages(progress_entries)
+
+    # Update all entries with new averages
+    for entry in progress_entries:
+        entry.avg_training_frequency = avg_training_frequency
+        entry.avg_weight_change = avg_weight_change
+
+    db.session.commit()
+
 
 
 def create_new_progress(user, week_number, weight, workout_count) -> None:
