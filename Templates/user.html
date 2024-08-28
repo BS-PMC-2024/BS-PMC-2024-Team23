@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Welcome to Your Personal Trainer{% endblock %}
 
+
+
 {% block content %}
     <div class="container mt-5">
         <div class="welcome-message text-center">
@@ -9,8 +11,8 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
+                <div class="card shadow-lg zoom-in">
+                    <div class="card-header bg-gradient-primary text-white">
                         <h2 class="text-center">Set Your Goals</h2>
                     </div>
                     <div class="card-body">
@@ -23,7 +25,6 @@
                                     <option value="maintain_weight" {% if goal=='maintain_weight' %}selected{% endif %}>Maintain weight</option>
                                 </select>
                             </div>
-
                             <div class="form-group">
                                 <label for="fitness_level">Select your fitness level:</label>
                                 <select name="fitness_level" id="fitness_level" class="form-control">
@@ -37,7 +38,7 @@
                                 <input type="number" name="training_frequency" id="training_frequency" class="form-control" min="1" max="7" value="{{ training_frequency }}" required>
                             </div>
                             <div class="text-center">
-                                <button type="submit" class="btn btn-success">Save Goals</button>
+                                <button type="submit" class="btn btn-success btn-lg pulse">Save Goals</button>
                             </div>
                         </form>
                     </div>
@@ -54,111 +55,36 @@
 
         <!-- Button to call create_program API -->
         <div class="container mt-5 text-center">
-            <button id="createProgramBtn" class="btn btn-success">Create Program</button>
+            <button id="createProgramBtn" class="btn btn-success btn-lg flash">Create Program</button>
         </div>
-        <!-- Container for displaying API response -->
         <div class="container mt-5">
             <h2 class="text-center">Program</h2>
             <div id="apiResponse" class="alert alert-info" role="alert">
                 <p>{{program}}</p>
             </div>
         </div>
-          <!-- Display Topics -->
-         <div class="container mt-5">
-    <h2 class="text-center">Topics</h2>
-    <ul class="list-group">
-        {% for topic in topics %}
-            <li class="list-group-item">
-                <h5 class="topic-title">{{ topic.title }}</h5>
-                <button class="btn btn-outline-info btn-sm show-description-btn" onclick="toggleTopic({{ topic.id }})">Show Description</button>
-                <div id="topic-description-{{ topic.id }}" style="display:none;">
-                    <p>{{ topic.description }}</p>
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+        <div class="container mt-5">
+            <h2 class="text-center">Topics</h2>
+            <ul class="list-group">
+                {% for topic in topics %}
+                    <li class="list-group-item">
+                        <h5 class="topic-title">{{ topic.title }}</h5>
+                        <button class="btn btn-outline-info btn-sm show-description-btn" onclick="toggleTopic({{ topic.id }})">Show Description</button>
+                        <div id="topic-description-{{ topic.id }}" style="display:none;">
+                            <p>{{ topic.description }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
 
 <script>
-document.getElementById('createProgramBtn').addEventListener('click', async function() {
-    try {
-        const response = await fetch('/create_program', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // Add any necessary headers here
-            },
-            body: JSON.stringify({})
-        });
-
-        const data = await response.json();
-        console.log('Success:', data);
-
-        // Display the response in the designated container
-        const responseContainer = document.getElementById('apiResponse');
-        responseContainer.innerHTML = ''; // Clear previous content
-
-        if (data.program) {
-            const programLines = data.program.split('\n');
-            let currentDay = null;
-            let dayContainer = null;
-
-            programLines.forEach(line => {
-                line = line.trim();
-                if (line.startsWith('Day')) {
-                    if (dayContainer) {
-                        responseContainer.appendChild(dayContainer);
-                    }
-                    currentDay = line;
-                    dayContainer = document.createElement('div');
-                    dayContainer.className = 'mb-4';
-                    const dayTitle = document.createElement('h3');
-                    dayTitle.textContent = currentDay;
-                    dayContainer.appendChild(dayTitle);
-                } else if (line && dayContainer) {
-                    const exerciseItem = document.createElement('p');
-                    exerciseItem.textContent = line;
-                    dayContainer.appendChild(exerciseItem);
-                }
-            });
-
-            if (dayContainer) {
-                responseContainer.appendChild(dayContainer);
-            }
-        } else {
-            responseContainer.innerHTML = '<p>No program data available.</p>';
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('apiResponse').innerHTML = '<p class="text-danger">An error occurred: ' + error + '</p>';
+    // JavaScript for animations and dynamic content
+    function toggleTopic(topicId) {
+        const descriptionDiv = document.getElementById('topic-description-' + topicId);
+        descriptionDiv.style.display = descriptionDiv.style.display === 'none' ? 'block' : 'none';
     }
-});
 </script>
-<script>
-function toggleTopic(topicId) {
-    const descriptionDiv = document.getElementById('topic-description-' + topicId);
-    const displayStyle = descriptionDiv.style.display;
-
-    // Send an asynchronous request to record the click
-    fetch('/record_click', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ topic_id: topicId })
-    }).then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              console.log("Click recorded successfully");
-          } else {
-              console.log("Failed to record click");
-          }
-      });
-
-    // הצגת או הסתרת התיאור
-    descriptionDiv.style.display = (displayStyle === 'none') ? 'block' : 'none';
-}
-</script>
-
-
 {% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Muscle Development Suggestions{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Choose the Muscle You Want to Develop</h2>
+    <form method="POST" class="text-center mt-4">
+        <div class="form-group">
+            <label for="muscle_type" class="h4">Select Muscle Type:</label>
+            <select name="muscle_type" id="muscle_type" class="form-control mx-auto" style="width: 50%;">
+                {% for muscle in muscles %}
+                    <option value="{{ muscle }}">{{ muscle }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Get Suggestions</button>
+    </form>
+
+    {% if suggestion %}
+    <div class="mt-5">
+        <h3 class="text-center mb-4">Suggestions to Develop {{ request.form.get('muscle_type') }}</h3>
+        <div id="suggestion-container" class="card shadow-lg">
+            <div class="card-body">
+                <!-- Use safe filter to render HTML content -->
+                <p class="card-text">{{ suggestion|safe }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

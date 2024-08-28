@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import secrets
 from openAIManager import call_openAI, accpected_result,ask_openai,ai_suggestions
 from openAIManager import call_openAI, accpected_result, ask_openai, call_openAI_for_fact, get_ai_suggestions
+from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact,get_muscles_sugg_from_openai
 from datetime import datetime
 
 
@@ -364,6 +365,30 @@ def edit_user():
         return redirect(url_for("login"))
 
 
+@app.route("/trainee", methods=["GET", "POST"])
+def trainee():
+    if "user" in session and session.get("user_type") == "Trainee":
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        muscles = ["Chest", "Back", "Legs", "Arms", "Shoulders", "Abs"]  # סוגי השרירים האפשריים
+
+        suggestion = None
+
+        if request.method == "POST":
+            selected_muscle = request.form.get("muscle_type")
+            try:
+                # קריאה לפונקציה לקבלת הצעות לשיפור השריר הנבחר מ-AI
+                suggestion = get_muscles_sugg_from_openai(selected_muscle)
+                print(f"Fetched suggestion for {selected_muscle} from OpenAI: {suggestion}")
+            except Exception as e:
+                suggestion = "Unable to fetch suggestion at this moment."
+                print(f"Error fetching suggestion: {e}")
+
+        return render_template("trainee.html", muscles=muscles, suggestion=suggestion)
+    else:
+        flash("Access restricted to Trainee users only", "danger")
+        return redirect(url_for("login"))
+
 # can be deleted
 @app.route("/user")
 def user_home():
@@ -449,7 +474,15 @@ def coach():
             flash("About Me updated successfully!", "success")
             return redirect(url_for("coach"))
 
-        return render_template("coach.html", coach_info=user.about_me, topics=topics, fact=None)
+        try:
+            # הוספת העובדה מה-API
+            fact = get_random_fact_from_openai()
+            print(f"Fetched fact from OpenAI: {fact}")  # הדפסת העובדה בטרמינל
+        except Exception as e:
+            fact = "Unable to fetch fact at this moment."
+            print(f"Error fetching fact: {e}")  # הדפסת שגיאה בטרמינל
+
+        return render_template("coach.html", coach_info=user.about_me, topics=topics, fact=fact)
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
@@ -459,6 +492,7 @@ def get_fact():
     if "user" in session:
         try:
             fact = get_random_fact_from_openai()
+            print(f"Fetched fact from OpenAI: {fact}")  # הדפסת העובדה בטרמינל
             return jsonify({"fact": fact}), 200
         except Exception as e:
             print(f"Error fetching fact: {e}")
@@ -506,18 +540,17 @@ def edit_user_admin():
                 return redirect(url_for("edit_user_admin"))
 
             selected_user = db.session.get(Users, user_id)
-            print(f"User ID: {user_id}")
-            print(f"Selected User: {selected_user}")
 
             if selected_user:
-                selected_user.first_name = request.form["first_name"]
-                selected_user.last_name = request.form["last_name"]
-                selected_user.email = request.form["email"]
-                selected_user.password = request.form["password"]
-                selected_user.age = request.form["age"]
-                selected_user.weight = request.form["weight"]
-                selected_user.height = request.form["height"]
-                selected_user.user_type = request.form["user_type"]
+                # עדכון פרטי המשתמש
+                selected_user.first_name = request.form.get("first_name")
+                selected_user.last_name = request.form.get("last_name")
+                selected_user.email = request.form.get("email")
+                selected_user.password = request.form.get("password")
+                selected_user.age = request.form.get("age")
+                selected_user.weight = request.form.get("weight")
+                selected_user.height = request.form.get("height")
+                selected_user.user_type = request.form.get("user_type")
 
                 db.session.commit()
                 flash("User details updated successfully", "success")
@@ -525,11 +558,16 @@ def edit_user_admin():
             else:
                 flash("Selected user not found. Please try again.", "danger")
 
+        elif request.method == "GET" and "user_id" in request.args:
+            # בקשה לטעינת משתמש על פי user_id
+            user_id = request.args.get("user_id")
+            if user_id:
+                selected_user = db.session.get(Users, user_id)
+
         return render_template("edit_user_admin.html", users=users, selected_user=selected_user)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
-
 
 @app.route("/create_program", methods=["GET"])
 def render_create_program():
