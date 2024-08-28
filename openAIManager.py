@@ -111,7 +111,7 @@ def call_openAI_for_fact() -> str:
         )
 
         response = completion.choices[0].message.content.strip()
-        print("Successfully called OpenAI API for a random fitness fact.")  # הודעה על הצלחה
+        print("Successfully called OpenAI API for a random fitness fact.")
         return response
 
     except Exception as e:
@@ -119,5 +119,18 @@ def call_openAI_for_fact() -> str:
         return "An error occurred while generating the fitness fact."
 
 
+def get_ai_suggestions(class_type: str, class_level: str) -> str:
+    prompt = (
+        f"Provide coaching improvement suggestions for a class of type '{class_type}' "
+        f"at the '{class_level}' level. The suggestions should be practical and "
+        f"help the coach enhance their training sessions."
+    )
+
+    try:
+        completion = ask_openai(prompt)
+        return completion
+    except Exception as e:
+        print(f"Error fetching suggestions from OpenAI: {e}")
+        return "An error occurred while generating suggestions."
 
 

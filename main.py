@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact
+from openAIManager import call_openAI, accpected_result, ask_openai, call_openAI_for_fact, get_ai_suggestions
 from datetime import datetime
 
 
@@ -541,6 +541,26 @@ def get_random_fact_from_openai():
     fact = call_openAI_for_fact()
     return fact
 
+
+@app.route("/ai_suggestions", methods=["GET", "POST"])
+def ai_suggestions():
+    if "user" in session and session.get("user_type") == "Coach":
+        if request.method == "POST":
+            class_type = request.form.get("class_type")
+            class_level = request.form.get("class_level")
+
+            try:
+                suggestions = get_ai_suggestions(class_type, class_level)
+                return render_template("ai_suggestions.html", suggestions=suggestions, class_type=class_type,
+                                       class_level=class_level)
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", "danger")
+                return render_template("ai_suggestions.html", suggestions=None)
+
+        return render_template("ai_suggestions.html", suggestions=None)
+    else:
+        flash("You need to be logged in as a Coach to access this feature.", "danger")
+        return redirect(url_for("login"))
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])
 def edit_user_admin():

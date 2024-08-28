@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}AI Coaching Suggestions{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">AI Coaching Suggestions</h1>
+    <form action="/ai_suggestions" method="POST">
+        <div class="form-group">
+            <label for="class_type">Class Type:</label>
+            <input type="text" class="form-control" id="class_type" name="class_type" placeholder="e.g., Yoga, CrossFit" required>
+        </div>
+        <div class="form-group">
+            <label for="class_level">Class Level:</label>
+            <input type="text" class="form-control" id="class_level" name="class_level" placeholder="e.g., Beginner, Advanced" required>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Get Suggestions</button>
+        </div>
+    </form>
+
+    {% if suggestions %}
+    <div class="mt-5">
+        <h2>Suggestions for {{ class_type }} ({{ class_level }} Level):</h2>
+        <div class="alert alert-info">
+            <p>{{ suggestions }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
