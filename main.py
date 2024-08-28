@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact
+from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact,get_muscles_sugg_from_openai
 from datetime import datetime
 
 
@@ -434,6 +434,30 @@ def edit_user():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
+
+@app.route("/trainee", methods=["GET", "POST"])
+def trainee():
+    if "user" in session and session.get("user_type") == "Trainee":
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        muscles = ["Chest", "Back", "Legs", "Arms", "Shoulders", "Abs"]  # סוגי השרירים האפשריים
+
+        suggestion = None
+
+        if request.method == "POST":
+            selected_muscle = request.form.get("muscle_type")
+            try:
+                # קריאה לפונקציה לקבלת הצעות לשיפור השריר הנבחר מ-AI
+                suggestion = get_muscles_sugg_from_openai(selected_muscle)
+                print(f"Fetched suggestion for {selected_muscle} from OpenAI: {suggestion}")
+            except Exception as e:
+                suggestion = "Unable to fetch suggestion at this moment."
+                print(f"Error fetching suggestion: {e}")
+
+        return render_template("trainee.html", muscles=muscles, suggestion=suggestion)
+    else:
+        flash("Access restricted to Trainee users only", "danger")
+        return redirect(url_for("login"))
 
 # can be deleted
 @app.route("/user")

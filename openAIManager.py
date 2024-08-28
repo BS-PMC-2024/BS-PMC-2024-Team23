@@ -119,5 +119,34 @@ def call_openAI_for_fact() -> str:
         return "An error occurred while generating the fitness fact."
 
 
+def get_muscles_sugg_from_openai(muscle: str) -> str:
+    api_key = os.getenv('API_KEY')
 
+    if not api_key:
+        raise ValueError("API_KEY is missing. Please check your .env file.")
 
+    client = OpenAI(api_key=api_key)
+
+    prompt = f"Give me some tips on how to develop the {muscle} muscles effectively."
+
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.7,
+        )
+
+        # Get the response from OpenAI
+        response = completion.choices[0].message.content.strip()
+
+        # Split the response by the numbered points to add line breaks or list items
+        formatted_response = response.replace('1.', '<br>1.').replace('2.', '<br>2.').replace('3.', '<br>3.') \
+            .replace('4.', '<br>4.').replace('5.', '<br>5.').replace('6.', '<br>6.')
+
+        print(f"Successfully called OpenAI API for muscle suggestion: {formatted_response}")
+        return formatted_response
+
+    except Exception as e:
+        print(f"Error in OpenAI API call: {e}")
+        return "An error occurred while generating the suggestion."
