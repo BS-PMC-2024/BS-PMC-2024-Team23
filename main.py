@@ -933,9 +933,9 @@ def load_fake_data():
 
 
 if __name__ == "__main__":
-    #create_users_table()
-    #create_topics_table()
-    #load_fake_data()
+    create_users_table()
+    create_topics_table()
+    load_fake_data()
     with app.app_context():
         db.create_all()
     app.run(debug=True, host='0.0.0.0', port=5001)

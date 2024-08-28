@@ -64,6 +64,9 @@
             <li class="nav-item {% if request.endpoint == 'edit_user' %}active{% endif %}">
                 <a class="nav-link" href="{{ url_for('edit_user') }}">Edit Profile</a>
             </li>
+            <li class="nav-item {% if request.endpoint == 'interactive_feedback' %}active{% endif %}">
+                <a class="nav-link" href="{{ url_for('interactive_feedback') }}">Interactive Feedback</a>
+            </li>
             <li class="nav-item {% if request.endpoint == 'feedback' %}active{% endif %}">
                 <a class="nav-link" href="{{ url_for('feedback') }}">Feedback</a>
             </li>
@@ -84,6 +87,9 @@
             </li>
             <li class="nav-item {% if request.endpoint == 'edit_user' %}active{% endif %}">
                 <a class="nav-link" href="{{ url_for('edit_user') }}">Edit Profile</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'interactive_feedback' %}active{% endif %}">
+                <a class="nav-link" href="{{ url_for('interactive_feedback') }}">Interactive Feedback</a>
             </li>
             <li class="nav-item {% if request.endpoint == 'feedback' %}active{% endif %}">
                 <a class="nav-link" href="{{ url_for('feedback') }}">Feedback</a>
