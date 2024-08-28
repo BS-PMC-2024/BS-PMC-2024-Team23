@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Diet Suggestions{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">AI Diet Suggestions</h1>
+    <form action="/diet_suggestions" method="POST">
+        <div class="form-group">
+            <label for="diet_type">Choose Diet Type:</label>
+            <select class="form-control" id="diet_type" name="diet_type" required>
+                <option value="Keto">Keto</option>
+                <option value="Vegan">Vegan</option>
+                <option value="Balanced">Balanced</option>
+                <option value="Custom">Custom (You Decide)</option>
+            </select>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Get Diet Suggestions</button>
+        </div>
+    </form>
+
+    {% if suggestions %}
+    <div class="mt-5">
+        <h2>Diet Suggestions for {{ diet_type }} Diet:</h2>
+        <div class="alert alert-info">
+            <!-- Render suggestions as safe HTML -->
+            <p>{{ suggestions | safe }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

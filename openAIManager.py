@@ -187,9 +187,36 @@ def get_ai_suggestions(class_type: str, class_level: str) -> str:
 
     try:
         completion = ask_openai(prompt)
-        return completion
+        # Format the AI response
+        formatted_completion = format_ai_response(completion)
+        return formatted_completion
     except Exception as e:
         print(f"Error fetching suggestions from OpenAI: {e}")
         return "An error occurred while generating suggestions."
 
 
+def get_ai_diet_suggestions(height: float, weight: float, age: int, fitness_goal: str, diet_type: str) -> str:
+    prompt = (
+        f"Provide diet suggestions for someone who is {height} cm tall, weighs {weight} kg, is {age} years old, "
+        f"and has the fitness goal of '{fitness_goal}'. The diet type is '{diet_type}'."
+    )
+
+    try:
+        completion = ask_openai(prompt)
+        formatted_completion = format_ai_response(completion)
+        return formatted_completion
+    except Exception as e:
+        print(f"Error fetching diet suggestions from OpenAI: {e}")
+        return "An error occurred while generating suggestions."
+
+def format_ai_response(response: str) -> str:
+    # Split the response into bullet points or sections
+    sections = response.split('\n')
+
+    # Wrap each section in a <p> or <li> tag for better readability
+    formatted_response = "<ul>"
+    for section in sections:
+        formatted_response += f"<li>{section.strip()}</li>"
+    formatted_response += "</ul>"
+
+    return formatted_response

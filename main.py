@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result,ask_openai,ai_suggestions
+from openAIManager import call_openAI, accpected_result, ask_openai, ai_suggestions, get_ai_diet_suggestions
 from openAIManager import call_openAI, accpected_result, ask_openai, call_openAI_for_fact, get_ai_suggestions
 from datetime import datetime
 
@@ -135,7 +135,7 @@ def handle_login_post():
         set_user_session(found_user)
 
         if user_goals_complete(found_user):
-            return redirect(url_for("user"))
+            return redirect_based_on_user_type(found_user)
 
         return redirect_based_on_user_type(found_user)
 
@@ -149,12 +149,12 @@ def handle_login_get():
         flash("Already logged in.", "info")
         email = session.get("email")
         found_user = Users.query.filter_by(email=email).first()
-
+        """
         if found_user:
             if user_goals_complete(found_user):
                 return redirect(url_for("interactive_feedback"))
-
-            return redirect_based_on_user_type(found_user)
+"""
+        return redirect_based_on_user_type(found_user)
 
     return render_template("LoginPage.html")
 
@@ -163,6 +163,7 @@ def set_user_session(user):
     session["user"] = user.first_name
     session["email"] = user.email
     session["user_type"] = user.user_type
+    session["user_id"] = user.id
 
 
 def user_goals_complete(user):
@@ -471,8 +472,8 @@ def get_random_fact_from_openai():
     return fact
 
 
-@app.route("/ai_suggestions", methods=["GET", "POST"])
-def ai_suggestions():
+@app.route("/coaching_suggestions", methods=["GET", "POST"])
+def coaching_suggestions():
     if "user" in session and session.get("user_type") == "Coach":
         if request.method == "POST":
             class_type = request.form.get("class_type")
@@ -480,16 +481,17 @@ def ai_suggestions():
 
             try:
                 suggestions = get_ai_suggestions(class_type, class_level)
-                return render_template("ai_suggestions.html", suggestions=suggestions, class_type=class_type,
+                return render_template("coaching_suggestions.html", suggestions=suggestions, class_type=class_type,
                                        class_level=class_level)
             except Exception as e:
                 flash(f"An error occurred: {str(e)}", "danger")
-                return render_template("ai_suggestions.html", suggestions=None)
+                return render_template("coaching_suggestions.html", suggestions=None)
 
-        return render_template("ai_suggestions.html", suggestions=None)
+        return render_template("coaching_suggestions.html", suggestions=None)
     else:
         flash("You need to be logged in as a Coach to access this feature.", "danger")
         return redirect(url_for("login"))
+
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])
 def edit_user_admin():
@@ -614,9 +616,8 @@ def interactive_feedback():
         return redirect(url_for("login"))
 
     # Retrieve the logged-in user's information
-    email = session.get("email")
-    user = Users.query.filter_by(email=email).first()
-
+    userid = session.get("user_id")
+    user = Users.query.filter_by(id=userid).first()
     if not user:
         flash("User not found.", "danger")
         return redirect(url_for("login"))
@@ -728,8 +729,7 @@ def extract_progress_data(progress_entries):
 
 def generate_ai_suggestions(user, avg_training_frequency, avg_weight_change):
     """ Generate AI suggestions based on user data and calculated averages. """
-    return ai_suggestions(
-        user_name=user.first_name,
+    return ai_suggestions(user_name=user.first_name,
         age=user.age,
         gender=user.gender,
         weight=user.weight,
@@ -741,6 +741,7 @@ def generate_ai_suggestions(user, avg_training_frequency, avg_weight_change):
         fitness_level=user.fitness_level,
         program=user.program
     )
+
 
 def format_date(date):
     """ Format the date to a string, if it's not None. """
@@ -835,14 +836,15 @@ def create_users_table():
         else:
             print("Users table already exists!")
 
-def create_topics_table():
+def create_user_progress_table():
     with app.app_context():
         inspector = inspect(db.engine)
-        if not inspector.has_table('topics'):
+        if not inspector.has_table('user_progress'):
             db.create_all()
-            print("Topics table created!")
+            print("UserProgress table created!")
         else:
-            print("Topics table already exists!")
+            print("UserProgress table already exists!")
+
 
 @app.route("/ask_openai", methods=["GET", "POST"])
 def ask_openai_view():
@@ -859,6 +861,29 @@ def ask_openai_view():
     else:
         flash("You need to be logged in to access this feature.", "danger")
         return redirect(url_for("login"))
+
+@app.route("/diet_suggestions", methods=["GET", "POST"])
+def diet_suggestions():
+    if "user" in session:
+        if request.method == "POST":
+            # Retrieve form data
+            user_id = session["user_id"]
+            user = Users.query.get(user_id)
+
+            diet_type = request.form.get("diet_type")
+            try:
+                # Generate AI diet suggestions
+                suggestions = get_ai_diet_suggestions(user.height, user.weight, user.age, user.fitness_goal, diet_type)
+                return render_template("diet_suggestions.html", suggestions=suggestions, diet_type=diet_type)
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", "danger")
+                return render_template("diet_suggestions.html", suggestions=None)
+
+        return render_template("diet_suggestions.html", suggestions=None)
+    else:
+        flash("You need to be logged in as a Coach to access this feature.", "danger")
+        return redirect(url_for("login"))
+
 
 def load_fake_data():
     fake_names = ['John', 'Jane', 'Alice', 'Bob', 'Charlie']
@@ -897,6 +922,7 @@ def load_fake_data():
 if __name__ == "__main__":
     #create_users_table()
     #create_topics_table()
+    #create_user_progress_table()
     #load_fake_data()
     with app.app_context():
         db.create_all()
