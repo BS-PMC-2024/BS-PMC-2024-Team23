@@ -45,18 +45,13 @@
                 </div>
             </div>
         </div>
-        <form action="/user/result" method="POST">
         <div class="row justify-content-center mt-4">
             <div class="col-md-4 text-center">
-                <!-- Removed the inline onclick handler to ensure form submission -->
                 <button type="submit" class="btn btn-info">See Expected Result</button>
             </div>
         </div>
 
-        <!-- Button to call create_program API -->
-        <div class="container mt-5 text-center">
-            <button id="createProgramBtn" class="btn btn-success btn-lg flash">Create Program</button>
-        </div>
+
         <div class="container mt-5">
             <h2 class="text-center">Program</h2>
             <div id="apiResponse" class="alert alert-info" role="alert">
@@ -69,8 +64,7 @@
                 {% for topic in topics %}
                     <li class="list-group-item">
                         <h5 class="topic-title">{{ topic.title }}</h5>
-                        <button class="btn btn-outline-info btn-sm show-description-btn" onclick="toggleTopic({{ topic.id }})">Show Description</button>
-                        <div id="topic-description-{{ topic.id }}" style="display:none;">
+                            <button class="btn btn-outline-info btn-sm show-description-btn" onclick="toggleTopic({{ topic.id }})">Show Description</button>                            <div id="topic-description-{{ topic.id }}" style="display:none;">
                             <p>{{ topic.description }}</p>
                         </div>
                     </li>
@@ -81,10 +75,10 @@
 </div>
 
 <script>
-    // JavaScript for animations and dynamic content
-    function toggleTopic(topicId) {
-        const descriptionDiv = document.getElementById('topic-description-' + topicId);
-        descriptionDiv.style.display = descriptionDiv.style.display === 'none' ? 'block' : 'none';
-    }
+function toggleTopic(topicId) {
+    const descriptionDiv = document.getElementById('topic-description-' + topicId);
+    descriptionDiv.style.display = descriptionDiv.style.display === 'none' ? 'block' : 'none';
+}
 </script>
+
 {% endblock %}
