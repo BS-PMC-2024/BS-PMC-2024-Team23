@@ -34,7 +34,7 @@ def call_openAI(name: str, age: int, gender: str, weight: int, height: int, goal
         )
 
         response = completion.choices[0].message.content.strip()
-        print("Successfully called OpenAI API for exercise program.")  # הודעה על הצלחה
+        print("Successfully called OpenAI API for exercise program.")
         return response
 
     except Exception as e:
@@ -63,7 +63,7 @@ def accpected_result(program: str, time: str, weight: int, height: int, name: st
         )
 
         response2 = completion.choices[0].message.content.strip()
-        print("Successfully called OpenAI API for expected result.")  # הודעה על הצלחה
+        print("Successfully called OpenAI API for expected result.")
         return response2
 
     except Exception as e:
@@ -88,7 +88,7 @@ def ask_openai(prompt: str) -> str:
         )
 
         response = completion.choices[0].message.content.strip()
-        print("Successfully called OpenAI API for a custom prompt.")  # הודעה על הצלחה
+        print("Successfully called OpenAI API for a custom prompt.")
         return response
 
     except Exception as e:
@@ -125,7 +125,6 @@ def ai_suggestions(user_name: str, age: int, gender: str, weight: float, height:
 
     client = OpenAI(api_key=api_key)
 
-    # Construct the prompt with detailed user data
     prompt = (
         f"Provide personalized feedback for {user_name}, a {age}-year-old {gender} who is {height} cm tall and weighs {weight} kg. "
         f"The user's fitness goal is {fitness_goal}. They have been working out an average of {avg_training_frequency:.1f} times per week, "
@@ -135,12 +134,11 @@ def ai_suggestions(user_name: str, age: int, gender: str, weight: float, height:
     )
 
     try:
-        # Make the API call to OpenAI
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=400,  # Adjust max_tokens based on the expected length of the response
-            temperature=0.5,  # Adjust temperature for creativity vs. precision
+            max_tokens=400,
+            temperature=0.5,
         )
 
         response = completion.choices[0].message.content.strip()
@@ -171,7 +169,7 @@ def call_openAI_for_fact() -> str:
         )
 
         response = completion.choices[0].message.content.strip()
-        print("Successfully called OpenAI API for a random fitness fact.")  # הודעה על הצלחה
+        print("Successfully called OpenAI API for a random fitness fact.")
         return response
 
     except Exception as e:
@@ -211,10 +209,8 @@ def get_muscles_sugg_from_openai(muscle: str) -> str:
             temperature=0.7,
         )
 
-        # Get the response from OpenAI
         response = completion.choices[0].message.content.strip()
 
-        # Split the response by the numbered points to add line breaks or list items
         formatted_response = response.replace('1.', '<br>1.').replace('2.', '<br>2.').replace('3.', '<br>3.') \
             .replace('4.', '<br>4.').replace('5.', '<br>5.').replace('6.', '<br>6.')
 

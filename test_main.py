@@ -4,67 +4,59 @@ from main import app, db,Users
 
 @pytest.fixture
 def client():
-    # הגדרת האפליקציה למצב בדיקות
     app.config['TESTING'] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"  # שימוש במסד נתונים זמני בזיכרון
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config['SECRET_KEY'] = 'test_secret_key'
 
     with app.test_client() as client:
         with app.app_context():
-            db.create_all()  # יצירת טבלאות למסד הנתונים
+            db.create_all()
         yield client
 
-    # ניקוי הנתונים אחרי הבדיקה
     with app.app_context():
         db.drop_all()
 
 
 def test_home_route(client):
-    """ בדיקה של דף הבית """
+
     response = client.get('/')
     assert response.status_code == 200
-    assert b'Login' in response.data  # התאמת התוכן לצפוי בדף הבית
+    assert b'Login' in response.data
 
 
 def test_about_route(client):
-    """ בדיקה של דף אודות """
     response = client.get('/about')
     assert response.status_code == 200
-    assert b'About' in response.data  # התאמת התוכן לצפוי בדף "אודות"
+    assert b'About' in response.data
 
 
 def test_logout_without_user(client):
-    """ בדיקה של התנתקות ללא משתמש מחובר """
     response = client.get('/logout', follow_redirects=True)
     assert response.status_code == 200
-    assert b'You are not logged in.' in response.data  # התאמת הודעת השגיאה הצפויה
+    assert b'You are not logged in.' in response.data
 
 
 def test_feedback_route(client):
-    """ בדיקה של דף הפידבק """
     response = client.get('/feedback')
     assert response.status_code == 200
-    assert b'Feedback' in response.data  # התאמת התוכן לצפוי בדף הפידבק
+    assert b'Feedback' in response.data
 
 
 
 def test_admin_route_without_permission(client):
-    """ בדיקה של גישה ל-admin ללא הרשאה """
     response = client.get('/admin', follow_redirects=True)
     assert response.status_code == 200
-    assert b'You are not authorized to view this page' in response.data  # התאמת הודעת השגיאה הצפויה
+    assert b'You are not authorized to view this page' in response.data
 
 
 
 def test_view_route(client):
-    """ בדיקה של דף view """
     response = client.get('/view')
     assert response.status_code == 200
-    assert b'Users' in response.data  # התאמת התוכן לצפוי בדף
+    assert b'Users' in response.data
 
 
 def test_register_with_valid_data(client):
-    """ בדיקה של הרשמה עם נתונים תקינים """
     response = client.post('/register', data=dict(
         user_type="Trainee",
         first_name="John",
@@ -81,8 +73,7 @@ def test_register_with_valid_data(client):
     ), follow_redirects=True)
 
     assert response.status_code == 200
-    assert b'Registration successful!' in response.data  # התאמת הודעת ההצלחה
-    # בדיקה שהמשתמש נשמר במסד הנתונים
+    assert b'Registration successful!' in response.data
     with app.app_context():
         user = Users.query.filter_by(email="john.doe@example.com").first()
         assert user is not None
@@ -90,8 +81,7 @@ def test_register_with_valid_data(client):
 
 
 def test_edit_user_details(client):
-    """ בדיקה של עדכון פרטי משתמש """
-    # הוספת משתמש לבדיקה
+
     with app.app_context():
         user = Users(
             user_type="Trainee",
@@ -112,13 +102,11 @@ def test_edit_user_details(client):
         db.session.add(user)
         db.session.commit()
 
-    # התחברות
     client.post('/login', data=dict(
         email="edit.user@example.com",
         password="password123"
     ), follow_redirects=True)
 
-    # עדכון פרטי המשתמש
     response = client.post('/edit_user', data=dict(
         first_name="Updated",
         last_name="User",
@@ -133,17 +121,15 @@ def test_edit_user_details(client):
     ), follow_redirects=True)
 
     assert response.status_code == 200
-    assert b'User details updated successfully!' in response.data  # התאמת הודעת ההצלחה
+    assert b'User details updated successfully!' in response.data
 
-    # בדיקה שהמשתמש עודכן במסד הנתונים
     with app.app_context():
         updated_user = Users.query.filter_by(email="edit.user@example.com").first()
         assert updated_user.first_name == "Updated"
         assert updated_user.age == 26
         assert updated_user.weight == 68.0
 def test_remove_user_by_admin(client):
-    """ בדיקה של מחיקת משתמש על ידי אדמין """
-    # הוספת משתמש ואדמין לבדיקה בתוך context של Flask
+
     with app.app_context():
         admin = Users(
             user_type="Admin",
@@ -181,30 +167,25 @@ def test_remove_user_by_admin(client):
         db.session.add(user)
         db.session.commit()
 
-        # שמירת ה-ID של המשתמש למחיקה
         user_id_to_delete = user.id
 
-    # התחברות כאדמין
     client.post('/login', data=dict(
         email="admin@example.com",
         password="adminpassword"
     ), follow_redirects=True)
 
-    # מחיקת המשתמש
     response = client.post('/remove_users', data=dict(
-        user_id=user_id_to_delete  # שימוש ב-ID של המשתמש שנשמר
+        user_id=user_id_to_delete
     ), follow_redirects=True)
 
     assert response.status_code == 200
-    assert b'User removed successfully' in response.data  # התאמת הודעת ההצלחה
+    assert b'User removed successfully' in response.data
 
-    # בדיקה שהמשתמש נמחק ממסד הנתונים בתוך context של Flask
     with app.app_context():
         deleted_user = Users.query.filter_by(email="delete.me@example.com").first()
         assert deleted_user is None
 def test_send_feedback(client):
-    """ בדיקה של שליחת פידבק על ידי המשתמש """
-    # יצירת משתמש לבדיקה
+
     with app.app_context():
         user = Users(
             user_type="Trainee",
@@ -225,19 +206,17 @@ def test_send_feedback(client):
         db.session.add(user)
         db.session.commit()
 
-    # התחברות
     client.post('/login', data=dict(
         email="feedback.sender@example.com",
         password="password123"
     ), follow_redirects=True)
 
-    # שליחת פידבק
     response = client.post('/feedback', data=dict(
         feedback="This is a test feedback!"
     ), follow_redirects=True)
 
     assert response.status_code == 200
-    assert b'Feedback received' in response.data or b'Feedback' in response.data  # עדכן את הבדיקה כך שתתאים להודעה שמתקבלת בפועל
+    assert b'Feedback received' in response.data or b'Feedback' in response.data
 
 
 
