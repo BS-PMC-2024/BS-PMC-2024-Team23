@@ -520,15 +520,7 @@ def coach():
             flash("About Me updated successfully!", "success")
             return redirect(url_for("coach"))
 
-        try:
-            # הוספת העובדה מה-API
-            fact = get_random_fact_from_openai()
-            print(f"Fetched fact from OpenAI: {fact}")  # הדפסת העובדה בטרמינל
-        except Exception as e:
-            fact = "Unable to fetch fact at this moment."
-            print(f"Error fetching fact: {e}")  # הדפסת שגיאה בטרמינל
-
-        return render_template("coach.html", coach_info=user.about_me, topics=topics, fact=fact)
+        return render_template("coach.html", coach_info=user.about_me, topics=topics, fact=None)
     else:
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
@@ -537,12 +529,10 @@ def coach():
 def get_fact():
     if "user" in session:
         try:
-            # קריאה ל-AI כדי לקבל עובדה אקראית
             fact = get_random_fact_from_openai()
-            print(f"Fetched fact from OpenAI: {fact}")  # הדפסת העובדה בטרמינל
             return jsonify({"fact": fact}), 200
         except Exception as e:
-            print(f"Error fetching fact: {e}")  # הדפסת שגיאה בטרמינל
+            print(f"Error fetching fact: {e}")
             return jsonify({"error": str(e)}), 500
     return jsonify({"error": "No user in session"}), 403
 
