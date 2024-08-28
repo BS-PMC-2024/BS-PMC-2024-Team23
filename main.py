@@ -551,7 +551,6 @@ def get_random_fact_from_openai():
     fact = call_openAI_for_fact()
     return fact
 
-
 @app.route("/edit_user_admin", methods=["GET", "POST"])
 def edit_user_admin():
     if "user" in session and session.get("user_type") == "Admin":
@@ -560,25 +559,22 @@ def edit_user_admin():
 
         if request.method == "POST":
             user_id = request.form.get("user_id")
-
-            # Check if user_id is valid and not empty
             if not user_id:
                 flash("No user selected. Please select a valid user.", "danger")
                 return redirect(url_for("edit_user_admin"))
 
             selected_user = db.session.get(Users, user_id)
-            print(f"User ID: {user_id}")
-            print(f"Selected User: {selected_user}")
 
             if selected_user:
-                selected_user.first_name = request.form["first_name"]
-                selected_user.last_name = request.form["last_name"]
-                selected_user.email = request.form["email"]
-                selected_user.password = request.form["password"]
-                selected_user.age = request.form["age"]
-                selected_user.weight = request.form["weight"]
-                selected_user.height = request.form["height"]
-                selected_user.user_type = request.form["user_type"]
+                # עדכון פרטי המשתמש
+                selected_user.first_name = request.form.get("first_name")
+                selected_user.last_name = request.form.get("last_name")
+                selected_user.email = request.form.get("email")
+                selected_user.password = request.form.get("password")
+                selected_user.age = request.form.get("age")
+                selected_user.weight = request.form.get("weight")
+                selected_user.height = request.form.get("height")
+                selected_user.user_type = request.form.get("user_type")
 
                 db.session.commit()
                 flash("User details updated successfully", "success")
@@ -586,11 +582,16 @@ def edit_user_admin():
             else:
                 flash("Selected user not found. Please try again.", "danger")
 
+        elif request.method == "GET" and "user_id" in request.args:
+            # בקשה לטעינת משתמש על פי user_id
+            user_id = request.args.get("user_id")
+            if user_id:
+                selected_user = db.session.get(Users, user_id)
+
         return render_template("edit_user_admin.html", users=users, selected_user=selected_user)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
-
 
 @app.route("/create_program", methods=["GET"])
 def render_create_program():
