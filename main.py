@@ -736,6 +736,15 @@ def create_users_table():
         else:
             print("Users table already exists!")
 
+def create_topics_table():
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if not inspector.has_table('topics'):
+            db.create_all()
+            print("Topics table created!")
+        else:
+            print("Topics table already exists!")
+
 @app.route("/ask_openai", methods=["GET", "POST"])
 def ask_openai_view():
     if "user" in session:
@@ -787,6 +796,7 @@ def load_fake_data():
 
 if __name__ == "__main__":
     #create_users_table()
+    #create_topics_table()
     #load_fake_data()
     with app.app_context():
         db.create_all()
