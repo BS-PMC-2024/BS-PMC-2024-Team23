@@ -240,7 +240,6 @@ def save_user_data():
     else:
         return redirect(url_for("login"))
 
-
 @app.route("/fetch_expected_result", methods=["POST"])
 def fetch_expected_result():
     if "user" in session:
@@ -250,7 +249,7 @@ def fetch_expected_result():
         if user and user.program:
             try:
                 time_frame = request.json.get('time_frame', '1 month')
-                expected_result = accpected_result(user.program, time_frame,user.weight,user.height,name,user.gender)
+                expected_result = accpected_result(user.program, time_frame, user.weight, user.height, name, user.gender)
                 return jsonify({"expected_result": expected_result}), 200
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
@@ -766,6 +765,11 @@ def format_date(date):
 def user_accepted_result():
     return render_template("accepted_result.html")
 
+@app.route("/view_expected_progress")
+def view_expected_progress():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("accepted_result.html")
 
 
 
