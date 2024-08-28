@@ -6,7 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact
+from openAIManager import call_openAI, accpected_result,ask_openai,ai_suggestions
+from openAIManager import call_openAI, accpected_result, ask_openai, call_openAI_for_fact, get_ai_suggestions
+from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact,get_muscles_sugg_from_openai
 from datetime import datetime
 
 
@@ -69,6 +71,10 @@ class UserProgress(db.Model):
     training_frequency = db.Column(db.Integer, nullable=False)
     weight = db.Column(db.Float, nullable=False)
     workout_count = db.Column(db.Integer, nullable=False)
+    avg_training_frequency = db.Column(db.Integer, nullable=False, default=0.0)
+    avg_weight_change = db.Column(db.Float, nullable=False, default=0.0)
+    ai_suggestions = db.Column(db.Text, nullable=True, default='')
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
 
     user = db.relationship('Users', back_populates='progress')
 
@@ -78,13 +84,26 @@ class Topics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    clicks = db.Column(db.Integer, default=0)  # עמודה חדשה לספירת לחיצות
 
     def __init__(self, title, description):
         self.title = title
         self.description = description
+        self.clicks = 0  # ברירת מחדל לאפס לחיצות
 
+@app.route("/record_click", methods=["POST"])
+def record_click():
+    data = request.get_json()
+    topic_id = data.get("topic_id")
 
-# Inject current user into all templates
+    if topic_id:
+        topic = Topics.query.get(topic_id)
+        if topic:
+            topic.clicks += 1
+            db.session.commit()
+            return jsonify({"success": True}), 200
+    return jsonify({"success": False}), 400
+
 @app.context_processor
 def inject_user():
     user_email = session.get("email")
@@ -95,6 +114,7 @@ def inject_user():
 @app.route("/")
 def home():
     return render_template("LoginPage.html")
+
 
 
 @app.route("/login", methods=["POST", "GET"])
@@ -115,7 +135,11 @@ def handle_login_post():
     if found_user and found_user.check_password(password):
         set_user_session(found_user)
 
+        if user_goals_complete(found_user):
+            return redirect(url_for("user"))
+
         return redirect_based_on_user_type(found_user)
+
     else:
         flash("User not found or incorrect password. Please register.", "danger")
         return redirect(url_for("home"))
@@ -153,7 +177,9 @@ def redirect_based_on_user_type(user):
         return redirect(url_for("user"))
     elif user.user_type == "Admin":
         return redirect(url_for("admin"))
-
+    else:
+        flash("Invalid user type", "danger")
+        return redirect(url_for("home"))
 
 @app.route("/admin", methods=["GET"])
 def admin():
@@ -216,68 +242,6 @@ def save_user_data():
         return redirect(url_for("login"))
 
 
-@app.route("/interactive_feedback", methods=["GET", "POST"])
-def interactive_feedback():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    # Retrieve the logged-in user's information
-    email = session.get("email")
-    user = Users.query.filter_by(email=email).first()
-
-    if not user:
-        flash("User not found.", "danger")
-        return redirect(url_for("login"))
-
-    # Initialize the date range to filter progress entries
-    start_date = request.form.get("start_date", None)
-    end_date = request.form.get("end_date", None)
-
-    # Query progress entries with optional date filtering
-    query = UserProgress.query.filter_by(user_id=user.id)
-    if start_date and end_date:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        query = query.filter(UserProgress.date.between(start_date, end_date))
-
-    progress_entries = query.order_by(UserProgress.week_number).all()
-
-    # Calculate average metrics
-    total_weeks = len(progress_entries)
-    total_workouts = sum(entry.workout_count for entry in progress_entries)
-    total_weight_change = (progress_entries[-1].weight - progress_entries[0].weight) if total_weeks > 1 else 0
-
-    avg_workout_frequency = total_workouts / total_weeks if total_weeks > 0 else 0
-    avg_weight_change = total_weight_change / total_weeks if total_weeks > 0 else 0
-
-    # Extract progress data for the chart
-    weeks = [entry.week_number for entry in progress_entries]
-    weights = [entry.weight for entry in progress_entries]
-    workout_counts = [entry.workout_count for entry in progress_entries]
-
-    # Render the template with the necessary data
-    return render_template(
-        "interactive_feedback.html",
-        user=user,
-        weeks=weeks,
-        weights=weights,
-        workout_counts=workout_counts,
-        avg_workout_frequency=avg_workout_frequency,
-        avg_weight_change=avg_weight_change,
-        progress_entries=progress_entries,
-        start_date=start_date.strftime('%Y-%m-%d') if start_date else '',
-        end_date=end_date.strftime('%Y-%m-%d') if end_date else ''
-    )
-
-
-@app.route("/user/result", methods=["POST"])
-def user_accpected_result():
-    return render_template("accpected_result.html")
-
-# @app.route("/accpected/result")
-# def render_accpected_result():
-
-
 @app.route("/fetch_expected_result", methods=["POST"])
 def fetch_expected_result():
     if "user" in session:
@@ -295,15 +259,6 @@ def fetch_expected_result():
             return jsonify({"error": "No program found for the user"}), 404
     else:
         return jsonify({"error": "User not authenticated"}), 401
-
-
-
-
-
-
-
-
-
 
 
 @app.route("/logout")
@@ -410,6 +365,30 @@ def edit_user():
         return redirect(url_for("login"))
 
 
+@app.route("/trainee", methods=["GET", "POST"])
+def trainee():
+    if "user" in session and session.get("user_type") == "Trainee":
+        email = session["email"]
+        user = Users.query.filter_by(email=email).first()
+        muscles = ["Chest", "Back", "Legs", "Arms", "Shoulders", "Abs"]  # סוגי השרירים האפשריים
+
+        suggestion = None
+
+        if request.method == "POST":
+            selected_muscle = request.form.get("muscle_type")
+            try:
+                # קריאה לפונקציה לקבלת הצעות לשיפור השריר הנבחר מ-AI
+                suggestion = get_muscles_sugg_from_openai(selected_muscle)
+                print(f"Fetched suggestion for {selected_muscle} from OpenAI: {suggestion}")
+            except Exception as e:
+                suggestion = "Unable to fetch suggestion at this moment."
+                print(f"Error fetching suggestion: {e}")
+
+        return render_template("trainee.html", muscles=muscles, suggestion=suggestion)
+    else:
+        flash("Access restricted to Trainee users only", "danger")
+        return redirect(url_for("login"))
+
 # can be deleted
 @app.route("/user")
 def user_home():
@@ -512,12 +491,11 @@ def coach():
 def get_fact():
     if "user" in session:
         try:
-            # קריאה ל-AI כדי לקבל עובדה אקראית
             fact = get_random_fact_from_openai()
             print(f"Fetched fact from OpenAI: {fact}")  # הדפסת העובדה בטרמינל
             return jsonify({"fact": fact}), 200
         except Exception as e:
-            print(f"Error fetching fact: {e}")  # הדפסת שגיאה בטרמינל
+            print(f"Error fetching fact: {e}")
             return jsonify({"error": str(e)}), 500
     return jsonify({"error": "No user in session"}), 403
 
@@ -526,6 +504,26 @@ def get_random_fact_from_openai():
     fact = call_openAI_for_fact()
     return fact
 
+
+@app.route("/ai_suggestions", methods=["GET", "POST"])
+def ai_suggestions():
+    if "user" in session and session.get("user_type") == "Coach":
+        if request.method == "POST":
+            class_type = request.form.get("class_type")
+            class_level = request.form.get("class_level")
+
+            try:
+                suggestions = get_ai_suggestions(class_type, class_level)
+                return render_template("ai_suggestions.html", suggestions=suggestions, class_type=class_type,
+                                       class_level=class_level)
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", "danger")
+                return render_template("ai_suggestions.html", suggestions=None)
+
+        return render_template("ai_suggestions.html", suggestions=None)
+    else:
+        flash("You need to be logged in as a Coach to access this feature.", "danger")
+        return redirect(url_for("login"))
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])
 def edit_user_admin():
@@ -542,18 +540,17 @@ def edit_user_admin():
                 return redirect(url_for("edit_user_admin"))
 
             selected_user = db.session.get(Users, user_id)
-            print(f"User ID: {user_id}")
-            print(f"Selected User: {selected_user}")
 
             if selected_user:
-                selected_user.first_name = request.form["first_name"]
-                selected_user.last_name = request.form["last_name"]
-                selected_user.email = request.form["email"]
-                selected_user.password = request.form["password"]
-                selected_user.age = request.form["age"]
-                selected_user.weight = request.form["weight"]
-                selected_user.height = request.form["height"]
-                selected_user.user_type = request.form["user_type"]
+                # עדכון פרטי המשתמש
+                selected_user.first_name = request.form.get("first_name")
+                selected_user.last_name = request.form.get("last_name")
+                selected_user.email = request.form.get("email")
+                selected_user.password = request.form.get("password")
+                selected_user.age = request.form.get("age")
+                selected_user.weight = request.form.get("weight")
+                selected_user.height = request.form.get("height")
+                selected_user.user_type = request.form.get("user_type")
 
                 db.session.commit()
                 flash("User details updated successfully", "success")
@@ -561,11 +558,16 @@ def edit_user_admin():
             else:
                 flash("Selected user not found. Please try again.", "danger")
 
+        elif request.method == "GET" and "user_id" in request.args:
+            # בקשה לטעינת משתמש על פי user_id
+            user_id = request.args.get("user_id")
+            if user_id:
+                selected_user = db.session.get(Users, user_id)
+
         return render_template("edit_user_admin.html", users=users, selected_user=selected_user)
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
-
 
 @app.route("/create_program", methods=["GET"])
 def render_create_program():
@@ -644,6 +646,152 @@ def manage_topics():
         return redirect(url_for("login"))
 
 
+@app.route("/interactive_feedback", methods=["GET", "POST"])
+def interactive_feedback():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    # Retrieve the logged-in user's information
+    email = session.get("email")
+    user = Users.query.filter_by(email=email).first()
+
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        # Handle form submission to update training details
+        week_number = request.form.get("week_number", type=int)
+        weight = request.form.get("weight", type=float)  # Assuming you want to capture weight as well
+        workout_count = request.form.get("workout_count", type=int)  # Assuming you want to capture workout count
+
+        # Validate the form inputs
+        if not all([week_number, weight, workout_count]):
+            flash("Invalid input. Please fill out all fields.", "danger")
+            return redirect(url_for("interactive_feedback"))
+
+        existing_entry = UserProgress.query.filter_by(user_id=user.id, week_number=week_number).first()
+
+        if existing_entry:
+            # Update the existing progress entry
+            update_progress(existing_entry, weight, workout_count, user)
+            flash("Progress updated successfully!", "success")
+        else:
+            # Create a new progress entry
+            create_new_progress(user, week_number, weight, workout_count)
+            flash("Progress added successfully!", "success")
+
+        db.session.commit()
+
+    # Initialize the date range to filter progress entries
+    start_date, end_date = get_data_range_from_request(request)
+
+    # Query and filter progress entries
+    progress_entries = get_filtered_progress_entries(user.id, start_date, end_date)
+
+    # Calculate average metrics
+    avg_training_frequency, avg_weight_change = calculate_averages(progress_entries)
+
+    # Extract data for chart display
+    weeks, weights, workout_counts = extract_progress_data(progress_entries)
+
+    # Generate AI suggestions based on user data and progress
+    ai_suggestions_text = generate_ai_suggestions(user, avg_training_frequency, avg_weight_change)
+
+    # Optionally save AI suggestions to the user's record
+    user.ai_suggestions = ai_suggestions_text
+    db.session.commit()
+
+    # Render the template with the necessary data
+    return render_template(
+        "interactive_feedback.html",
+        user=user,
+        weeks=weeks,
+        weights=weights,
+        workout_counts=workout_counts,
+        avg_training_frequency=avg_training_frequency,
+        avg_weight_change=avg_weight_change,
+        progress_entries=progress_entries,
+        start_date=format_date(start_date),
+        end_date=format_date(end_date),
+        suggestions=ai_suggestions_text
+    )
+
+
+def get_data_range_from_request(request):
+    """ Extract start and end dates from the request form."""
+    start_date = request.form.get("start_date", None)
+    end_date = request.form.get("end_date", None)
+
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+
+    return start_date, end_date
+
+def get_filtered_progress_entries(user_id, start_date, end_date):
+    """ Retrieve user progress entries, optionally filtered by a date range. """
+    query = UserProgress.query.filter_by(user_id=user_id)
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        query = query.filter(UserProgress.date.between(start_date, end_date))
+    return query.order_by(UserProgress.week_number).all()
+
+
+def calculate_averages(progress_entries):
+    """ Calculate average workout frequency and weight change from progress entries. """
+    total_weeks = len(progress_entries)
+    if total_weeks == 0:
+        return 0, 0
+
+    total_workouts = sum(entry.workout_count for entry in progress_entries)
+    total_weight_change = 0
+
+    if total_weeks > 1:
+        total_weight_change = progress_entries[-1].weight - progress_entries[0].weight
+
+    avg_training_frequency = total_workouts / total_weeks
+    avg_weight_change = total_weight_change / (total_weeks - 1)
+    return avg_training_frequency, avg_weight_change
+
+
+def extract_progress_data(progress_entries):
+    """ Extract week numbers, weights, and workout counts from progress entries for chart display. """
+    weeks = [entry.week_number for entry in progress_entries]
+    weights = [entry.weight for entry in progress_entries]
+    workout_counts = [entry.workout_count for entry in progress_entries]
+    return weeks, weights, workout_counts
+
+def generate_ai_suggestions(user, avg_training_frequency, avg_weight_change):
+    """ Generate AI suggestions based on user data and calculated averages. """
+    return ai_suggestions(
+        user_name=user.first_name,
+        age=user.age,
+        gender=user.gender,
+        weight=user.weight,
+        height=user.height,
+        fitness_goal=user.fitness_goal,
+        avg_training_frequency=avg_training_frequency,
+        avg_weight_change=avg_weight_change,
+        training_frequency=user.training_frequency,
+        fitness_level=user.fitness_level,
+        program=user.program
+    )
+
+def format_date(date):
+    """ Format the date to a string, if it's not None. """
+    return date.strftime('%Y-%m-%d') if date else ''
+
+@app.route("/user/result", methods=["POST"])
+def user_accepted_result():
+    return render_template("accepted_result.html")
+
+# @app.route("/accepted/result")
+# def render_accepted_result():
+
+
 @app.route("/add_progress", methods=["POST"])
 def add_progress():
     if "user" not in session:
@@ -656,6 +804,7 @@ def add_progress():
     week_number = request.form.get("week_number")
     weight = request.form.get("weight")
     workout_count = request.form.get("workout_count")
+    training_frequency = user.training_frequency
 
     # Validate form data
     if not all([week_number, weight, workout_count]):
@@ -674,6 +823,7 @@ def add_progress():
         flash("Progress added successfully!", "success")
 
     db.session.commit()
+
     return redirect(url_for("interactive_feedback"))
 
 
@@ -701,6 +851,18 @@ def create_new_progress(user, week_number, weight, workout_count) -> None:
     )
     db.session.add(new_progress)
 
+def get_previous_progress(user_id):
+    """Fetches the user's progress history for better AI suggestions."""
+
+    previous_progress = UserProgress.query.filter_by(user_id=user_id).order_by(UserProgress.week_number.desc()).limit(5).all()
+    progress_data = [{
+        "week_number": entry.week_number,
+        "weight": entry.weight,
+        "workout_count": entry.workout_count
+    } for entry in previous_progress]
+
+    return progress_data
+
 
 def create_users_table():
     with app.app_context():
@@ -710,6 +872,15 @@ def create_users_table():
             print("Users table created!")
         else:
             print("Users table already exists!")
+
+def create_topics_table():
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if not inspector.has_table('topics'):
+            db.create_all()
+            print("Topics table created!")
+        else:
+            print("Topics table already exists!")
 
 @app.route("/ask_openai", methods=["GET", "POST"])
 def ask_openai_view():
@@ -760,8 +931,10 @@ def load_fake_data():
     print("Fake data loaded!")
 
 
+
 if __name__ == "__main__":
     #create_users_table()
+    #create_topics_table()
     #load_fake_data()
     with app.app_context():
         db.create_all()

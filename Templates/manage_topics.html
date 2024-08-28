@@ -38,6 +38,9 @@
                     <label for="edit_description_{{ topic.id }}">Description</label>
                     <textarea id="edit_description_{{ topic.id }}" name="description" class="form-control" required>{{ topic.description }}</textarea>
                 </div>
+                <div>
+                    <span class="badge badge-info">Clicks: {{ topic.clicks }}</span>
+                </div>
                 <button type="submit" name="action" value="edit" class="btn btn-warning">Update Topic</button>
             </form>
 
@@ -51,4 +54,3 @@
     </ul>
 </div>
 {% endblock %}
-

@@ -23,11 +23,9 @@
         </div>
     </div>
 
-
-
     <!-- Fact section -->
     <div class="container mt-5">
-        <h2 class="text-center">Fitness facts</h2>
+        <h2 class="text-center">Fitness Facts</h2>
         <div id="fact-container" class="alert alert-success text-center">
             <p id="fact-text">{{ fact }}</p>
         </div>
@@ -88,9 +86,6 @@
     {% endif %}
 {% endwith %}
 
-
-
-
 <!-- JavaScript to fetch a new fact -->
 <script>
 document.getElementById('newFactBtn').addEventListener('click', async function() {
@@ -135,23 +130,17 @@ function toggleTopic(topicId) {
 
 <style>
     .topic-title {
-        font-size: 1.5rem; /* מגדיל את הכותרת */
+        font-size: 1.5rem; /* Increase the font size for the topic title */
         font-weight: bold;
-        color: #007bff; /* צבע כחול מותאם אישית */
+        color: #007bff; /* Custom blue color */
         margin-bottom: 10px;
     }
 
     .show-description-btn {
-        padding: 5px 10px; /* הקטנת הכפתור */
-        font-size: 0.9rem; /* הקטנת גודל הטקסט בכפתור */
-        margin-top: 5px; /* הוספת רווח מעל הכפתור */
-        display: block; /* הכפתור מוצג מתחת לכותרת */
+        padding: 5px 10px; /* Adjust padding for the button */
+        font-size: 0.9rem; /* Adjust the font size */
+        margin-top: 5px; /* Add some margin above the button */
+        display: block; /* Make sure the button is displayed below the title */
     }
 </style>
 {% endblock %}
-
-
-
-
-
-

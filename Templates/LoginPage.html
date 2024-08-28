@@ -8,82 +8,43 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/LoginPage.css') }}">
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-     <style>
-        select {
-            color: #6c757d; /* Color for placeholder text */
-        }
-        select option[disabled] {
-            color: #6c757d; /* Color for placeholder text */
-            font-style: italic; /* Italic style for placeholder */
-        }
-    </style>
 </head>
 <body>
- <!--Flash messages block-->
-    <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=True) %}
-            {% if messages %}
-                <div class="alert alert-dismissible">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
+    <div class="login-panel">
+        <div class="login-container">
+            <div class="inner-panel">
+                <!-- Flash messages block -->
+                <div class="container mt-4">
+                    {% with messages = get_flashed_messages(with_categories=True) %}
+                        {% if messages %}
+                            <div class="alert alert-dismissible">
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
                 </div>
-            {% endif %}
-        {% endwith %}
-    </div>
-    <div class="login-reg-panel">
-        <div class="login-info-box">
-            <h2>Have an account?</h2>
-            <p>Just login</p>
-            <label id="label-register" for="log-reg-show">Login</label>
-            <input type="radio" name="active-log-panel" id="log-reg-show" checked="checked">
+                <h2>Login</h2>
+                <form method="POST" action="/login">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" name="email" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" name="password" required class="form-control">
+                    </div>
+                    <input type="submit" value="Login" class="btn btn-primary">
+                </form>
+                <div class="text-center mt-3">
+                    <p>Not registered yet?</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-secondary">Signup</a>
+                </div>
+            </div>
         </div>
-
-        <div class="register-info-box">
-            <h2>Don't have an account?</h2>
-            <p>What are you waiting for?, register!</p>
-            <label id="label-login" for="log-login-show">Register</label>
-            <input type="radio" name="active-log-panel" id="log-login-show">
-        </div>
-
-        <div class="white-panel">
-    <div class="login-show">
-        <h2>LOGIN</h2>
-        <form method="POST" action="/login">
-            <input type="email" placeholder="Email" name="email" required>
-            <input type="password" placeholder="Password" name="password" required>
-            <input type="submit" value="Login">
-        </form>
-        <a href="">Forgot password?</a>
     </div>
-    <div class="register-show">
-        <h2>REGISTER</h2>
-        <form method="POST" action="/register">
-    <select name="user_type" required>
-        <option value="Trainee">Trainee</option>
-        <option value="Coach">Coach</option>
-    </select>
-    <input type="text" placeholder="First Name" name="first_name" required>
-    <input type="text" placeholder="Last Name" name="last_name" required>
-    <input type="email" placeholder="Email" name="email" required>
-    <input type="password" placeholder="Password" name="password" required>
-    <input type="password" placeholder="Confirm Password" name="confirm_password" required>
-    <input type="number" placeholder="Age" name="age" required>
-    <select name="gender" required>
-        <option value="" disabled selected>Select Gender</option>
-        <option value="MALE">Male</option>
-        <option value="FEMALE">Female</option>
-    </select>
-    <input type="number" placeholder="Weight (kg)" name="weight" required>
-    <input type="number" placeholder="Height (cm)" name="height" required>
-    <input type="submit" value="Register">
-</form>
-
-      </div>
-</div>
 
     <script src="{{ url_for('static', filename='js/LoginPage.js') }}"></script>
 </body>

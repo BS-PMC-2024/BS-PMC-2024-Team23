@@ -96,6 +96,62 @@ def ask_openai(prompt: str) -> str:
         return "An error occurred while processing your request."
 
 
+
+def ai_suggestions(user_name: str, age: int, gender: str, weight: float, height: float, fitness_goal: str,
+                   avg_training_frequency: float, avg_weight_change: float, training_frequency: int,
+                   fitness_level: str, program: str) -> str:
+    """
+    Generate AI suggestions for the user based on detailed user data and progress.
+
+    Parameters:
+    - user_name (str): The name of the user.
+    - age (int): The user's age.
+    - gender (str): The user's gender.
+    - weight (float): The user's current weight.
+    - height (float): The user's height.
+    - fitness_goal (str): The user's fitness goal.
+    - avg_workout_frequency (float): The user's average workout frequency per week.
+    - avg_weight_change (float): The average weight change per week.
+    - training_frequency (int): The number of times the user trains per week.
+    - fitness_level (str): The user's fitness level (e.g., beginner, intermediate, advanced).
+
+    Returns:
+    - str: AI-generated suggestions for improvement and motivation.
+    """
+    api_key = os.getenv('API_KEY')
+
+    if not api_key:
+        raise ValueError("API_KEY is missing. Please check your .env file.")
+
+    client = OpenAI(api_key=api_key)
+
+    # Construct the prompt with detailed user data
+    prompt = (
+        f"Provide personalized feedback for {user_name}, a {age}-year-old {gender} who is {height} cm tall and weighs {weight} kg. "
+        f"The user's fitness goal is {fitness_goal}. They have been working out an average of {avg_training_frequency:.1f} times per week, "
+        f"with an average weight change of {avg_weight_change:.2f} kg per week. "
+        f"The user trains {training_frequency} times per week and their fitness level is {fitness_level}. "
+        f"Please give suggestions on how to improve progress and maintain motivation by this program: {program}, considering the user's goal and progress so far."
+    )
+
+    try:
+        # Make the API call to OpenAI
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=400,  # Adjust max_tokens based on the expected length of the response
+            temperature=0.5,  # Adjust temperature for creativity vs. precision
+        )
+
+        response = completion.choices[0].message.content.strip()
+        return response
+
+    except Exception as e:
+        print(f"Error in OpenAI API call: {e}")
+        return "An error occurred while generating AI suggestions."
+
+
+
 def call_openAI_for_fact() -> str:
     api_key = os.getenv('API_KEY')
 
@@ -121,3 +177,50 @@ def call_openAI_for_fact() -> str:
     except Exception as e:
         print(f"Error in OpenAI API call: {e}")
         return "An error occurred while generating the fitness fact."
+
+def get_ai_suggestions(class_type: str, class_level: str) -> str:
+    prompt = (
+        f"Provide coaching improvement suggestions for a class of type '{class_type}' "
+        f"at the '{class_level}' level. The suggestions should be practical and "
+        f"help the coach enhance their training sessions."
+    )
+
+    try:
+        completion = ask_openai(prompt)
+        return completion
+    except Exception as e:
+        print(f"Error fetching suggestions from OpenAI: {e}")
+        return "An error occurred while generating suggestions."
+
+
+def get_muscles_sugg_from_openai(muscle: str) -> str:
+    api_key = os.getenv('API_KEY')
+
+    if not api_key:
+        raise ValueError("API_KEY is missing. Please check your .env file.")
+
+    client = OpenAI(api_key=api_key)
+
+    prompt = f"Give me some tips on how to develop the {muscle} muscles effectively."
+
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.7,
+        )
+
+        # Get the response from OpenAI
+        response = completion.choices[0].message.content.strip()
+
+        # Split the response by the numbered points to add line breaks or list items
+        formatted_response = response.replace('1.', '<br>1.').replace('2.', '<br>2.').replace('3.', '<br>3.') \
+            .replace('4.', '<br>4.').replace('5.', '<br>5.').replace('6.', '<br>6.')
+
+        print(f"Successfully called OpenAI API for muscle suggestion: {formatted_response}")
+        return formatted_response
+
+    except Exception as e:
+        print(f"Error in OpenAI API call: {e}")
+        return "An error occurred while generating the suggestion."
