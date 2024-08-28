@@ -364,7 +364,6 @@ def edit_user():
         flash("You are not logged in", "danger")
         return redirect(url_for("login"))
 
-
 @app.route("/trainee", methods=["GET", "POST"])
 def trainee():
     if "user" in session and session.get("user_type") == "Trainee":
@@ -388,7 +387,6 @@ def trainee():
     else:
         flash("Access restricted to Trainee users only", "danger")
         return redirect(url_for("login"))
-
 # can be deleted
 @app.route("/user")
 def user_home():
@@ -606,7 +604,14 @@ def create_program():
     else:
         return jsonify({"error": "No user in session"}), 403
 
+@app.route("/ai_muscles")
+def ai_muscles():
+    # בדוק אם המשתמש מחובר ובעל סוג משתמש Trainee
+    if "user" not in session or session.get("user_type") != 'Trainee':
+        return redirect(url_for("login"))
 
+    # הצגת הדף של trainee.html
+    return render_template("trainee.html")
 @app.route("/manage_topics", methods=["GET", "POST"])
 def manage_topics():
     if "user" in session and session.get("user_type") == "Admin":
