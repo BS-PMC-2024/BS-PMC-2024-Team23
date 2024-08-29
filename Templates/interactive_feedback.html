@@ -59,7 +59,7 @@ Interactive Feedback
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-gold btn-lg mb-2">Submit</button>
+                <button type="submit" class="btn btn-lg mb-2" style="background-color: #007bff; color: #FFF;">Submit</button>
             </form>
         </div>
     </div>
@@ -67,24 +67,24 @@ Interactive Feedback
     <!-- User's Fitness Goal and Training Frequency -->
     <div class="row mt-5 text-center">
         <div class="col-md-6 mb-4">
-            <h4 class="font-weight-bold text-gold">Fitness Goal</h4>
-            <p class="h3 text-light">{{ user.fitness_goal }}</p>
+            <h4 class="font-weight-bold" style="color: #007bff;">Fitness Goal</h4>
+            <p class="h3" style="color: #000;">{{ user.fitness_goal }}</p>
         </div>
         <div class="col-md-6 mb-4">
-            <h4 class="font-weight-bold text-gold">Training Frequency</h4>
-            <p class="h3 text-light">{{ user.training_frequency }} times/week</p>
+            <h4 class="font-weight-bold" style="color: #007bff;">Training Frequency</h4>
+            <p class="h3" style="color: #000;">{{ user.training_frequency }} times/week</p>
         </div>
     </div>
 
     <!-- Average Metrics Section -->
     <div class="row mt-4 text-center">
         <div class="col-md-6 mb-4">
-            <h4 class="font-weight-bold text-gold">Average Workout Frequency</h4>
-            <p class="h3 text-light">{{ avg_workout_frequency }}</p>
+            <h4 class="font-weight-bold" style="color: #007bff;">Average Workout Frequency</h4>
+            <p class="h3" style="color: #000;">{{ avg_workout_frequency }}</p>
         </div>
         <div class="col-md-6 mb-4">
-            <h4 class="font-weight-bold text-gold">Average Weight Change per Week</h4>
-            <p class="h3 text-light">{{ avg_weight_change }} kg</p>
+            <h4 class="font-weight-bold" style="color: #007bff;">Average Weight Change per Week</h4>
+            <p class="h3" style="color: #000;">{{ avg_weight_change }} kg</p>
         </div>
     </div>
 
@@ -93,7 +93,7 @@ Interactive Feedback
         <div class="col-md-12">
             <form action="{{ url_for('interactive_feedback') }}" method="POST" class="form-inline justify-content-center">
                 <div class="form-group mb-2">
-                    <label for="start_date" class="mr-2 text-gold">Start Date:</label>
+                    <label for="start_date" class="mr-2" style="color: #007bff;">Start Date:</label>
                     <input type="date"
                            class="form-control form-control-lg bg-dark text-light"
                            id="start_date"
@@ -101,14 +101,14 @@ Interactive Feedback
                            value="{{ start_date }}">
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <label for="end_date" class="mr-2 text-gold">End Date:</label>
+                    <label for="end_date" class="mr-2" style="color: #007bff;">End Date:</label>
                     <input type="date"
                            class="form-control form-control-lg bg-dark text-light"
                            id="end_date"
                            name="end_date"
                            value="{{ end_date }}">
                 </div>
-                <button type="submit" class="btn btn-gold btn-lg mb-2">Filter</button>
+                <button type="submit" class="btn btn-lg mb-2" style="background-color: #007bff; color: #FFF;">Filter</button>
             </form>
         </div>
     </div>
@@ -116,7 +116,7 @@ Interactive Feedback
     <!-- Progress Chart -->
     <div class="row mt-5">
         <div class="col-md-12">
-            <h4 class="text-center text-gold mb-4">Progress Chart</h4>
+            <h4 class="text-center" style="color: #007bff;">Progress Chart</h4>
             <div class="chart-container bg-dark p-4 rounded" style="position: relative; height:40vh; width:80vw;">
                 <canvas id="progressChart"></canvas>
             </div>
@@ -126,7 +126,7 @@ Interactive Feedback
     <!-- Detailed Progress Table -->
     <div class="row mt-5">
         <div class="col-md-12">
-            <h4 class="text-center text-gold mb-4">Progress Details</h4>
+            <h4 class="text-center" style="color: #007bff;">Progress Details</h4>
             <table class="table table-dark table-striped table-bordered table-hover">
                 <thead class="thead-gold">
                     <tr>

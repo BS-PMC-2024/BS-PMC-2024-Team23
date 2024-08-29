@@ -735,7 +735,13 @@ def calculate_averages(progress_entries):
         total_weight_change = progress_entries[-1].weight - progress_entries[0].weight
 
     avg_training_frequency = total_workouts / total_weeks
-    avg_weight_change = total_weight_change / (total_weeks - 1)
+
+    # Devision by 0
+    if total_weeks > 1:
+        avg_weight_change = total_weight_change / (total_weeks - 1)
+    else:
+        avg_weight_change = 0
+
     return avg_training_frequency, avg_weight_change
 
 
