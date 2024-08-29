@@ -158,13 +158,19 @@ def call_openAI_for_fact() -> str:
 
     client = OpenAI(api_key=api_key)
 
-    prompt = "Give me a random fitness or well-being fact."
+    prompt = (
+        f"Bring me a random fitness or well-being fact."
+        f"Bring me random fact about count calories"
+        f"Bring me random fact about "
+        f"Bring me a random fact about what you should do before going to training"
+        f"Bring me the most important fact to know about fitness"
+    )
 
     try:
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=100,
+            max_tokens=150,
             temperature=0.7,
         )
 
