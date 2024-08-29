@@ -6,7 +6,7 @@ from main import app, db, Users
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"  # שימוש במסד נתונים זמני בזיכרון
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config['SECRET_KEY'] = 'test_secret_key'
 
     with app.test_client() as client:

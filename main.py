@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-from openAIManager import call_openAI, accpected_result,ask_openai,ai_suggestions
+from openAIManager import call_openAI, accpected_result, ask_openai, ai_suggestions, get_ai_diet_suggestions
 from openAIManager import call_openAI, accpected_result, ask_openai, call_openAI_for_fact, get_ai_suggestions
 from openAIManager import call_openAI, accpected_result,ask_openai,call_openAI_for_fact,get_muscles_sugg_from_openai
 from datetime import datetime
@@ -136,7 +136,7 @@ def handle_login_post():
         set_user_session(found_user)
 
         if user_goals_complete(found_user):
-            return redirect(url_for("user"))
+            return redirect_based_on_user_type(found_user)
 
         return redirect_based_on_user_type(found_user)
 
@@ -150,12 +150,12 @@ def handle_login_get():
         flash("Already logged in.", "info")
         email = session.get("email")
         found_user = Users.query.filter_by(email=email).first()
-
+        """
         if found_user:
             if user_goals_complete(found_user):
                 return redirect(url_for("interactive_feedback"))
-
-            return redirect_based_on_user_type(found_user)
+"""
+        return redirect_based_on_user_type(found_user)
 
     return render_template("LoginPage.html")
 
@@ -164,6 +164,7 @@ def set_user_session(user):
     session["user"] = user.first_name
     session["email"] = user.email
     session["user_type"] = user.user_type
+    session["user_id"] = user.id
 
 
 def user_goals_complete(user):
@@ -250,7 +251,7 @@ def fetch_expected_result():
         if user and user.program:
             try:
                 time_frame = request.json.get('time_frame', '1 month')
-                expected_result = accpected_result(user.program, time_frame,user.weight,user.height,name,user.gender)
+                expected_result = accpected_result(user.program, time_frame, user.weight, user.height, name, user.gender)
                 return jsonify({"expected_result": expected_result}), 200
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
@@ -310,7 +311,6 @@ def register():
             flash("Passwords do not match", "error")
             return redirect(url_for("register"))
 
-        # Check if email already exists
         existing_user = Users.query.filter_by(email=email).first()
         if existing_user:
             flash("Email is already taken", "error")
@@ -387,6 +387,7 @@ def trainee():
         return redirect(url_for("login"))
 
 
+# can be deleted
 @app.route("/user")
 def user_home():
     if "user" in session:
@@ -499,8 +500,8 @@ def get_random_fact_from_openai():
     return fact
 
 
-@app.route("/ai_suggestions", methods=["GET", "POST"])
-def ai_suggestions():
+@app.route("/coaching_suggestions", methods=["GET", "POST"])
+def coaching_suggestions():
     if "user" in session and session.get("user_type") == "Coach":
         if request.method == "POST":
             class_type = request.form.get("class_type")
@@ -508,16 +509,17 @@ def ai_suggestions():
 
             try:
                 suggestions = get_ai_suggestions(class_type, class_level)
-                return render_template("ai_suggestions.html", suggestions=suggestions, class_type=class_type,
+                return render_template("coaching_suggestions.html", suggestions=suggestions, class_type=class_type,
                                        class_level=class_level)
             except Exception as e:
                 flash(f"An error occurred: {str(e)}", "danger")
-                return render_template("ai_suggestions.html", suggestions=None)
+                return render_template("coaching_suggestions.html", suggestions=None)
 
-        return render_template("ai_suggestions.html", suggestions=None)
+        return render_template("coaching_suggestions.html", suggestions=None)
     else:
         flash("You need to be logged in as a Coach to access this feature.", "danger")
         return redirect(url_for("login"))
+
 
 @app.route("/edit_user_admin", methods=["GET", "POST"])
 def edit_user_admin():
@@ -559,6 +561,7 @@ def edit_user_admin():
     else:
         flash("You are not authorized to view this page", "danger")
         return redirect(url_for("login"))
+
 
 @app.route("/create_program", methods=["GET"])
 def render_create_program():
@@ -602,7 +605,6 @@ def ai_muscles():
     if "user" not in session or session.get("user_type") != 'Trainee':
         return redirect(url_for("login"))
 
-    return render_template("trainee.html")
 @app.route("/manage_topics", methods=["GET", "POST"])
 def manage_topics():
     if "user" in session and session.get("user_type") == "Admin":
@@ -647,9 +649,8 @@ def interactive_feedback():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    email = session.get("email")
-    user = Users.query.filter_by(email=email).first()
-
+    userid = session.get("user_id")
+    user = Users.query.filter_by(id=userid).first()
     if not user:
         flash("User not found.", "danger")
         return redirect(url_for("login"))
@@ -734,7 +735,13 @@ def calculate_averages(progress_entries):
         total_weight_change = progress_entries[-1].weight - progress_entries[0].weight
 
     avg_training_frequency = total_workouts / total_weeks
-    avg_weight_change = total_weight_change / (total_weeks - 1)
+
+    # Devision by 0
+    if total_weeks > 1:
+        avg_weight_change = total_weight_change / (total_weeks - 1)
+    else:
+        avg_weight_change = 0
+
     return avg_training_frequency, avg_weight_change
 
 
@@ -766,6 +773,11 @@ def format_date(date):
 def user_accepted_result():
     return render_template("accepted_result.html")
 
+@app.route("/view_expected_progress")
+def view_expected_progress():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("accepted_result.html")
 
 
 
@@ -852,6 +864,15 @@ def create_topics_table():
         else:
             print("Topics table already exists!")
 
+def create_user_progress_table():
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if not inspector.has_table('user_progress'):
+            db.create_all()
+            print("UserProgress table created!")
+        else:
+            print("UserProgress table already exists!")
+
 @app.route("/ask_openai", methods=["GET", "POST"])
 def ask_openai_view():
     if "user" in session:
@@ -867,6 +888,27 @@ def ask_openai_view():
     else:
         flash("You need to be logged in to access this feature.", "danger")
         return redirect(url_for("login"))
+
+@app.route("/diet_suggestions", methods=["GET", "POST"])
+def diet_suggestions():
+    if "user" in session:
+        if request.method == "POST":
+            user_id = session["user_id"]
+            user = Users.query.get(user_id)
+
+            diet_type = request.form.get("diet_type")
+            try:
+                suggestions = get_ai_diet_suggestions(user.height, user.weight, user.age, user.fitness_goal, diet_type)
+                return render_template("diet_suggestions.html", suggestions=suggestions, diet_type=diet_type)
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", "danger")
+                return render_template("diet_suggestions.html", suggestions=None)
+
+        return render_template("diet_suggestions.html", suggestions=None)
+    else:
+        flash("You need to be logged in as a Coach to access this feature.", "danger")
+        return redirect(url_for("login"))
+
 
 def load_fake_data():
     fake_names = ['John', 'Jane', 'Alice', 'Bob', 'Charlie']
@@ -901,11 +943,49 @@ def load_fake_data():
     print("Fake data loaded!")
 
 
+def load_topics():
+    topics_data = [
+        {
+            "title": "High-Intensity Interval Training",
+            "description": (
+                "The best trendy workout for losing weight right now is High-Intensity Interval Training (HIIT). "
+                "HIIT involves short bursts of intense exercise followed by brief rest periods. It's effective because "
+                "it maximizes calorie burn in a short amount of time and boosts metabolism even after the workout. "
+                "This makes it ideal for quick weight loss and maintaining lean muscle."
+            )
+        },
+        {
+            "title": "Cardio Workout",
+            "description": (
+                "A cardio workout, short for cardiovascular exercise, is any exercise that raises your heart rate and increases "
+                "blood circulation. It involves rhythmic activities that engage large muscle groups, such as running, cycling, "
+                "swimming, or dancing. The primary goal of cardio workouts is to improve heart and lung function, enhance endurance, "
+                "burn calories, and support overall health and fitness. Cardio exercises can vary in intensity, from low to high, "
+                "and can be tailored to different fitness levels."
+            )
+        }
+    ]
+
+    try:
+        for topic in topics_data:
+            existing_topic = Topics.query.filter_by(title=topic["title"]).first()
+            if not existing_topic:
+                new_topic = Topics(title=topic["title"], description=topic["description"])
+                db.session.add(new_topic)
+
+        db.session.commit()
+        print("Topics loaded successfully!")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(f"Error loading topics: {e}")
+
 
 if __name__ == "__main__":
     #create_users_table()
     #create_topics_table()
+    #create_user_progress_table()
     #load_fake_data()
     with app.app_context():
         db.create_all()
+        #load_topics()
     app.run(debug=True, host='0.0.0.0', port=5001)

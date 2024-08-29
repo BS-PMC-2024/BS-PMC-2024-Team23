@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 def call_openAI(name: str, age: int, gender: str, weight: int, height: int, goal: str, training_frequency: int,
                 fitness_level: str) -> str:
     api_key = os.getenv('API_KEY')
@@ -182,6 +181,7 @@ def call_openAI_for_fact() -> str:
         print(f"Error in OpenAI API call: {e}")
         return "An error occurred while generating the fitness fact."
 
+
 def get_ai_suggestions(class_type: str, class_level: str) -> str:
     prompt = (
         f"Provide coaching improvement suggestions for a class of type '{class_type}' "
@@ -191,7 +191,8 @@ def get_ai_suggestions(class_type: str, class_level: str) -> str:
 
     try:
         completion = ask_openai(prompt)
-        return completion
+        formatted_completion = format_ai_response(completion)
+        return formatted_completion
     except Exception as e:
         print(f"Error fetching suggestions from OpenAI: {e}")
         return "An error occurred while generating suggestions."
@@ -226,3 +227,27 @@ def get_muscles_sugg_from_openai(muscle: str) -> str:
     except Exception as e:
         print(f"Error in OpenAI API call: {e}")
         return "An error occurred while generating the suggestion."
+
+def get_ai_diet_suggestions(height: float, weight: float, age: int, fitness_goal: str, diet_type: str) -> str:
+    prompt = (
+        f"Provide diet suggestions for someone who is {height} cm tall, weighs {weight} kg, is {age} years old, "
+        f"and has the fitness goal of '{fitness_goal}'. The diet type is '{diet_type}'."
+    )
+
+    try:
+        completion = ask_openai(prompt)
+        formatted_completion = format_ai_response(completion)
+        return formatted_completion
+    except Exception as e:
+        print(f"Error fetching diet suggestions from OpenAI: {e}")
+        return "An error occurred while generating suggestions."
+
+def format_ai_response(response: str) -> str:
+    sections = response.split('\n')
+
+    formatted_response = "<ul>"
+    for section in sections:
+        formatted_response += f"<li>{section.strip()}</li>"
+    formatted_response += "</ul>"
+
+    return formatted_response

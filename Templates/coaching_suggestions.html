@@ -19,13 +19,13 @@
         </div>
     </form>
 
-    {% if suggestions %}
-    <div class="mt-5">
-        <h2>Suggestions for {{ class_type }} ({{ class_level }} Level):</h2>
-        <div class="alert alert-info">
-            <p>{{ suggestions }}</p>
-        </div>
+{% if suggestions %}
+<div class="mt-5">
+    <h2>Suggestions for {{ class_type }} ({{ class_level }} Level):</h2>
+    <div class="alert alert-info">
+        <p>{{ suggestions | safe }}</p>
     </div>
-    {% endif %}
+</div>
+{% endif %}
 </div>
 {% endblock %}
