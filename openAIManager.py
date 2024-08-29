@@ -237,10 +237,8 @@ def get_ai_diet_suggestions(height: float, weight: float, age: int, fitness_goal
         return "An error occurred while generating suggestions."
 
 def format_ai_response(response: str) -> str:
-    # Split the response into bullet points or sections
     sections = response.split('\n')
 
-    # Wrap each section in a <p> or <li> tag for better readability
     formatted_response = "<ul>"
     for section in sections:
         formatted_response += f"<li>{section.strip()}</li>"

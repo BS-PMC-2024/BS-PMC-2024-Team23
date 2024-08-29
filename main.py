@@ -311,7 +311,6 @@ def register():
             flash("Passwords do not match", "error")
             return redirect(url_for("register"))
 
-        # Check if email already exists
         existing_user = Users.query.filter_by(email=email).first()
         if existing_user:
             flash("Email is already taken", "error")
@@ -431,7 +430,6 @@ def remove_users():
         if request.method == "POST":
             user_id = request.form.get("user_id")
 
-            # Ensure user_id is provided and is a valid integer
             if not user_id:
                 flash("User ID is required.", "danger")
                 return redirect(url_for("remove_users"))
@@ -498,7 +496,6 @@ def get_fact():
     return jsonify({"error": "No user in session"}), 403
 
 def get_random_fact_from_openai():
-    # ?????? ?????? ????? ?-OpenAI ????? ????? ??????
     fact = call_openAI_for_fact()
     return fact
 
@@ -652,7 +649,6 @@ def interactive_feedback():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    # Retrieve the logged-in user's information
     userid = session.get("user_id")
     user = Users.query.filter_by(id=userid).first()
     if not user:
@@ -891,13 +887,11 @@ def ask_openai_view():
 def diet_suggestions():
     if "user" in session:
         if request.method == "POST":
-            # Retrieve form data
             user_id = session["user_id"]
             user = Users.query.get(user_id)
 
             diet_type = request.form.get("diet_type")
             try:
-                # Generate AI diet suggestions
                 suggestions = get_ai_diet_suggestions(user.height, user.weight, user.age, user.fitness_goal, diet_type)
                 return render_template("diet_suggestions.html", suggestions=suggestions, diet_type=diet_type)
             except Exception as e:
@@ -943,6 +937,42 @@ def load_fake_data():
     print("Fake data loaded!")
 
 
+def load_topics():
+    topics_data = [
+        {
+            "title": "High-Intensity Interval Training",
+            "description": (
+                "The best trendy workout for losing weight right now is High-Intensity Interval Training (HIIT). "
+                "HIIT involves short bursts of intense exercise followed by brief rest periods. It's effective because "
+                "it maximizes calorie burn in a short amount of time and boosts metabolism even after the workout. "
+                "This makes it ideal for quick weight loss and maintaining lean muscle."
+            )
+        },
+        {
+            "title": "Cardio Workout",
+            "description": (
+                "A cardio workout, short for cardiovascular exercise, is any exercise that raises your heart rate and increases "
+                "blood circulation. It involves rhythmic activities that engage large muscle groups, such as running, cycling, "
+                "swimming, or dancing. The primary goal of cardio workouts is to improve heart and lung function, enhance endurance, "
+                "burn calories, and support overall health and fitness. Cardio exercises can vary in intensity, from low to high, "
+                "and can be tailored to different fitness levels."
+            )
+        }
+    ]
+
+    try:
+        for topic in topics_data:
+            existing_topic = Topics.query.filter_by(title=topic["title"]).first()
+            if not existing_topic:
+                new_topic = Topics(title=topic["title"], description=topic["description"])
+                db.session.add(new_topic)
+
+        db.session.commit()
+        print("Topics loaded successfully!")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(f"Error loading topics: {e}")
+
 
 if __name__ == "__main__":
     #create_users_table()
@@ -951,4 +981,5 @@ if __name__ == "__main__":
     #load_fake_data()
     with app.app_context():
         db.create_all()
+        #load_topics()
     app.run(debug=True, host='0.0.0.0', port=5001)
