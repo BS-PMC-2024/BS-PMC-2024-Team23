@@ -10,7 +10,7 @@ FitAI is a personalized fitness and health management platform that leverages AI
 - **Expected Results**: Users can view their expected progress over a selected timeframe.
   
 <img width="1919" height="1079" alt="1" src="https://github.com/user-attachments/assets/ee84fbef-e29d-4d25-a613-e54a1d911d8e" />
-<img width="1919" height="1078" alt="2" src="https://github.com/user-attachments/assets/04896aca-c47f-46e1-ae3c-5bdde38f4d0b" />
+<img width="1919" height="1079" alt="4" src="https://github.com/user-attachments/assets/9a3c0ea7-2945-4eac-985e-b2654481208d" />
 
 ## Table of Contents
 - [Installation](#installation)
@@ -102,5 +102,6 @@ Or manually through the software's UI
      - User: `myuser`
      - Password: `mypassword`
      - Database: `mydatabase`
+
 
 
