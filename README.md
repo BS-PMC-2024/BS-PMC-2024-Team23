@@ -1,6 +1,15 @@
-# FitAI
+# FitAI(Python, Flask, PostgresSQL(Docker), HTML, CSS)
 
 FitAI is a personalized fitness and health management platform that leverages AI to provide tailored workout plans, diet suggestions, and progress tracking.
+
+Technologies:
+Backend: Python, Flask
+Database: PostgresSQL(SQLAlchemy ORM) Container(Docker)
+AI: OPEN AI 
+Frontend: HTML, CSS, React (optional for feuture iterations)
+  
+<img width="1919" height="1079" alt="1" src="https://github.com/user-attachments/assets/ee84fbef-e29d-4d25-a613-e54a1d911d8e" />
+<img width="1919" height="1079" alt="4" src="https://github.com/user-attachments/assets/9a3c0ea7-2945-4eac-985e-b2654481208d" />
 
 # Features
 - **Register/Login**: Users can register and log in to the platform.
@@ -8,9 +17,6 @@ FitAI is a personalized fitness and health management platform that leverages AI
 - **AI-Generated Programs**: The system provides AI-generated workout programs and diet suggestions.
 - **Progress Tracking**: Users can track their progress, update their training details, and view AI-generated suggestions for improvement.
 - **Expected Results**: Users can view their expected progress over a selected timeframe.
-  
-<img width="1919" height="1079" alt="1" src="https://github.com/user-attachments/assets/ee84fbef-e29d-4d25-a613-e54a1d911d8e" />
-<img width="1919" height="1079" alt="4" src="https://github.com/user-attachments/assets/9a3c0ea7-2945-4eac-985e-b2654481208d" />
 
 ## Table of Contents
 - [Installation](#installation)
@@ -102,6 +108,7 @@ Or manually through the software's UI
      - User: `myuser`
      - Password: `mypassword`
      - Database: `mydatabase`
+
 
 
 
